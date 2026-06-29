@@ -16,6 +16,7 @@
   <!-- Icons & Chart JS -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
 
   <style>
     /* ----------------------------------------------------
@@ -1667,86 +1668,6 @@
     @media (max-width: 900px) {
       .lang-switch { display: none; }
     }
-
-    /* Face validation feedback */
-    .face-validation-msg {
-      padding: 0.75rem 1rem;
-      border-radius: 0.75rem;
-      font-size: 0.88rem;
-      margin-top: 0.75rem;
-      display: none;
-      align-items: flex-start;
-      gap: 0.5rem;
-      line-height: 1.45;
-    }
-
-    .face-validation-msg.visible {
-      display: flex;
-    }
-
-    .face-validation-msg.error {
-      background: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.25);
-      color: var(--danger);
-    }
-
-    .face-validation-msg.success {
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.25);
-      color: var(--success);
-    }
-
-    .face-validation-msg.warning {
-      background: rgba(245, 158, 11, 0.1);
-      border: 1px solid rgba(245, 158, 11, 0.25);
-      color: var(--warning);
-    }
-
-    .day-preview-score {
-      font-size: 1.1rem;
-      font-weight: 800;
-      color: var(--primary);
-      font-family: var(--font-heading);
-    }
-
-    .tracking-history-section {
-      padding: 1.5rem;
-      margin-bottom: 2rem;
-    }
-
-    .tracking-history-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-      margin-top: 1rem;
-    }
-
-    .tracking-history-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem 1.25rem;
-      border-radius: 0.75rem;
-      border: 1px solid var(--glass-border);
-      background: rgba(255, 255, 255, 0.08);
-      cursor: pointer;
-      transition: all var(--transition-fast);
-      flex-wrap: wrap;
-      gap: 0.75rem;
-    }
-
-    .tracking-history-item:hover {
-      border-color: var(--primary);
-      transform: translateY(-1px);
-    }
-
-    .camera-precheck-icon {
-      width: 3rem;
-      height: 3rem;
-      color: var(--warning);
-      margin: 0 auto 1rem;
-      display: block;
-    }
   </style>
 </head>
 <body>
@@ -1905,15 +1826,15 @@
     <!-- AI SLEEP SCAN SECTION -->
     <section id="scan-section" class="page-section hidden">
       <div style="margin-bottom: 2rem;">
-        <span class="badge badge-primary" data-i18n="scan.badge">Morning Biometrics</span>
-        <h2 style="font-size: 2.25rem; margin-top: 0.5rem;" data-i18n="scan.title">AI Sleep Scan</h2>
-        <p style="color: var(--text-muted);" data-i18n="scan.subtitle">Snap a photo or upload a waking image to simulate your circadian recovery scoring.</p>
+        <span class="badge badge-primary">Morning Biometrics</span>
+        <h2 style="font-size: 2.25rem; margin-top: 0.5rem;">AI Sleep Scan</h2>
+        <p style="color: var(--text-muted);">Snap a photo or upload a waking image to simulate your circadian recovery scoring.</p>
       </div>
 
       <div class="scan-layout">
         <!-- Capture Widget -->
         <div class="scan-widget glass">
-          <h3 style="font-size: 1.25rem;" data-i18n="scan.imageSource">Image Source</h3>
+          <h3 style="font-size: 1.25rem;">Image Source</h3>
           
           <div class="scan-container">
             <div class="scan-laser hidden" id="scan-laser-element"></div>
@@ -1921,8 +1842,8 @@
               <div class="scan-loader" id="main-scan-loader"></div>
               <div class="scan-loader-dots"><span></span><span></span><span></span></div>
               <div>
-                <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem;" id="scanning-status-title" data-i18n="scan.processing">Processing Face Matrix...</h4>
-                <p style="font-size: 0.85rem; color: #94a3b8;" id="scanning-status-desc" data-i18n="scan.calculating">Calculating light reflection indices</p>
+                <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem;" id="scanning-status-title">Processing Face Matrix...</h4>
+                <p style="font-size: 0.85rem; color: #94a3b8;" id="scanning-status-desc">Calculating light reflection indices</p>
               </div>
             </div>
 
@@ -1935,8 +1856,17 @@
             <div class="scan-fallback-bg" id="camera-fallback">
               <i data-lucide="camera" style="width: 3.5rem; height: 3.5rem; stroke-width: 1.25;"></i>
               <div>
-                <p style="font-weight: 600; color: white;" data-i18n="scan.cameraOffline">Camera Offline</p>
-                <p style="font-size: 0.8rem; max-width: 18rem; margin: 0.25rem auto 0 auto;" data-i18n="scan.cameraHint">Allow webcam permissions or upload an image file from your device folder.</p>
+                <p style="font-weight: 600; color: white;">Camera Offline</p>
+                <p style="font-size: 0.8rem; max-width: 18rem; margin: 0.25rem auto 0 auto;">Allow webcam permissions or upload an image file from your device folder.</p>
+              </div>
+            </div>
+            <!-- Face Guide Frame Overlay -->
+            <div id="face-guide-frame" class="hidden" style="position:absolute; inset:0; pointer-events:none; display:flex; align-items:center; justify-content:center; z-index:10;">
+              <div style="width:60%; height:70%; border:3px dashed rgba(16, 185, 129, 0.6); border-radius:50%; position:relative;">
+                <div style="position:absolute; top:-8px; left:50%; transform:translateX(-50%); background:rgba(16, 185, 129, 0.8); color:white; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:600;" data-i18n="report.faceGuide">Face Guide</div>
+                <div style="position:absolute; top:15%; left:50%; transform:translateX(-50%); width:30%; height:8px; border:2px solid rgba(16, 185, 129, 0.4); border-radius:4px;"></div>
+                <div style="position:absolute; top:50%; left:10%; transform:translateY(-50%); width:8px; height:15%; border:2px solid rgba(16, 185, 129, 0.4); border-radius:4px;"></div>
+                <div style="position:absolute; top:50%; right:10%; transform:translateY(-50%); width:8px; height:15%; border:2px solid rgba(16, 185, 129, 0.4); border-radius:4px;"></div>
               </div>
             </div>
           </div>
@@ -1944,20 +1874,18 @@
           <div class="scan-controls">
             <button class="btn btn-secondary" id="btn-camera-toggle">
               <i data-lucide="video"></i>
-              <span data-i18n="scan.openCamera">Open Camera</span>
+              <span>Open Camera</span>
             </button>
             <button class="btn btn-secondary" onclick="document.getElementById('file-uploader').click()">
               <i data-lucide="upload"></i>
-              <span data-i18n="scan.uploadImage">Upload Image</span>
+              <span>Upload Image</span>
             </button>
             <input type="file" id="file-uploader" accept="image/*" class="hidden">
           </div>
 
-          <div id="scan-face-validation-msg" class="face-validation-msg" role="alert" aria-live="polite"></div>
-
           <button class="btn btn-primary" id="btn-analyze" disabled style="width: 100%;">
             <i data-lucide="activity"></i>
-            <span data-i18n="scan.analyze">Analyze Morning Selfie</span>
+            <span>Analyze Morning Selfie</span>
           </button>
         </div>
 
@@ -1966,8 +1894,8 @@
           <div id="results-placeholder" class="flex-center" style="flex-direction: column; gap: 1rem; height: 100%; text-align: center; color: var(--text-muted); min-height: 25rem;">
             <i data-lucide="bar-chart-2" style="width: 3.5rem; height: 3.5rem; stroke-width: 1.25;"></i>
             <div>
-              <p style="font-weight: 600;" data-i18n="scan.reportPending">Report Pending</p>
-              <p style="font-size: 0.85rem;" data-i18n="scan.reportPendingDesc">Capture or upload a selfie, then click 'Analyze Morning Selfie' to load your biometric stats.</p>
+              <p style="font-weight: 600;">Report Pending</p>
+              <p style="font-size: 0.85rem;">Capture or upload a selfie, then click 'Analyze Morning Selfie' to load your biometric stats.</p>
             </div>
           </div>
 
@@ -1975,7 +1903,7 @@
             <div class="result-header">
               <div>
                 <span class="badge badge-success" id="report-class">Optimal Recovery</span>
-                <h3 style="font-size: 1.35rem; margin-top: 0.25rem;" data-i18n="scan.scoreAnalysis">Scan Score Analysis</h3>
+                <h3 style="font-size: 1.35rem; margin-top: 0.25rem;">Scan Score Analysis</h3>
               </div>
 
               <!-- Score ring -->
@@ -2001,7 +1929,7 @@
             <div class="metrics-grid">
               <div class="metric-card">
                 <div class="metric-name-wrap">
-                  <span data-i18n="scan.energy">Energy</span>
+                  <span>Energy</span>
                   <span id="metric-energy-val">0%</span>
                 </div>
                 <div class="bar-bg">
@@ -2011,7 +1939,7 @@
 
               <div class="metric-card">
                 <div class="metric-name-wrap">
-                  <span data-i18n="scan.darkCircles">Dark Circles</span>
+                  <span>Dark Circles</span>
                   <span id="metric-circles-val">0%</span>
                 </div>
                 <div class="bar-bg">
@@ -2021,7 +1949,7 @@
 
               <div class="metric-card">
                 <div class="metric-name-wrap">
-                  <span data-i18n="scan.skinFreshness">Skin Freshness</span>
+                  <span>Skin Freshness</span>
                   <span id="metric-skin-val">0%</span>
                 </div>
                 <div class="bar-bg">
@@ -2031,7 +1959,7 @@
 
               <div class="metric-card">
                 <div class="metric-name-wrap">
-                  <span data-i18n="scan.hydration">Hydration</span>
+                  <span>Hydration</span>
                   <span id="metric-hydration-val">0%</span>
                 </div>
                 <div class="bar-bg">
@@ -2041,7 +1969,7 @@
 
               <div class="metric-card">
                 <div class="metric-name-wrap">
-                  <span data-i18n="scan.stress">Stress Indicator</span>
+                  <span>Stress Indicator</span>
                   <span id="metric-stress-val">0%</span>
                 </div>
                 <div class="bar-bg">
@@ -2051,7 +1979,7 @@
 
               <!-- Gauge Chart Container -->
               <div class="metric-card" style="display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 0.5rem 1rem;">
-                <span style="font-size: 0.8rem; font-weight: 600; margin-bottom: 0.25rem;" data-i18n="scan.sleepGauge">Sleep Quality Gauge</span>
+                <span style="font-size: 0.8rem; font-weight: 600; margin-bottom: 0.25rem;">Sleep Quality Gauge</span>
                 <div class="gauge-container" style="position: relative; width: 100px; height: 60px;">
                   <svg width="100" height="60" viewBox="0 0 100 60">
                     <defs>
@@ -2072,7 +2000,7 @@
 
             <!-- Radar chart for sleep metrics -->
             <div>
-              <h4 style="font-size: 0.9rem; margin-bottom: 0.75rem;" data-i18n="scan.radarTitle">Biometric Vitals Radar</h4>
+              <h4 style="font-size: 0.9rem; margin-bottom: 0.75rem;">Biometric Vitals Radar</h4>
               <div class="canvas-wrap" style="height: 12rem;">
                 <canvas id="scanRadarChart"></canvas>
               </div>
@@ -2081,7 +2009,7 @@
             <!-- Sleep Summary text -->
             <div style="background: rgba(16, 185, 129, 0.05); padding: 1rem; border-radius: 0.75rem; border: 1px solid var(--border-color);">
               <h4 style="font-size: 0.9rem; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.4rem;">
-                <i data-lucide="sparkles" style="width: 1rem; color: var(--primary);"></i> <span data-i18n="scan.sleepSummary">Sleep Summary</span>
+                <i data-lucide="sparkles" style="width: 1rem; color: var(--primary);"></i> Sleep Summary
               </h4>
               <p style="font-size: 0.85rem; line-height: 1.4;" id="report-summary-text">Your morning biometric matrix displays high restfulness markers and minimal infraorbital tension. Dermal hydration checks are optimal.</p>
             </div>
@@ -2120,7 +2048,7 @@
             <!-- Disclaimer Notice -->
             <div class="disclaimer">
               <i data-lucide="info" style="color: var(--warning); width: 1.75rem; flex-shrink: 0;"></i>
-              <p data-i18n="scan.disclaimer">Important Notice: This result is an AI-generated wellness estimation for educational purposes only and is NOT a medical diagnosis.</p>
+              <p><strong>Important Notice:</strong> This result is an AI-generated wellness estimation for educational purposes only and is <strong>NOT a medical diagnosis</strong>.</p>
             </div>
           </div>
 
@@ -2131,15 +2059,15 @@
     <!-- DASHBOARD SECTION -->
     <section id="dashboard-section" class="page-section hidden">
       <div style="margin-bottom: 2rem;">
-        <span class="badge badge-primary" data-i18n="dashboard.badge">Circadian Management</span>
-        <h2 style="font-size: 2.25rem; margin-top: 0.5rem;" data-i18n="dashboard.title">Interactive Dashboard</h2>
-        <p style="color: var(--text-muted);" data-i18n="dashboard.subtitle">Comprehensive view of your sleep score history, Streaks and analytical charts.</p>
+        <span class="badge badge-primary">Circadian Management</span>
+        <h2 style="font-size: 2.25rem; margin-top: 0.5rem;">Interactive Dashboard</h2>
+        <p style="color: var(--text-muted);">Comprehensive view of your sleep score history, Streaks and analytical charts.</p>
       </div>
 
       <!-- Quick summary cards -->
       <div class="dashboard-grid">
         <div class="stat-card glass">
-          <p style="font-size: 0.85rem; color: var(--text-muted);" data-i18n="dashboard.today">Today's Sleep Score</p>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Today's Sleep Score</p>
           <p class="stat-val animate-num" id="dash-today-score">--</p>
           <div class="stat-diff" id="dash-today-diff">
             <i data-lucide="activity"></i> No scan today
@@ -2147,15 +2075,15 @@
         </div>
 
         <div class="stat-card glass">
-          <p style="font-size: 0.85rem; color: var(--text-muted);" data-i18n="dashboard.avg">Average Score</p>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Average Score</p>
           <p class="stat-val animate-num" id="dash-avg-score">--</p>
           <div class="stat-diff" style="color: var(--primary);">
-            <i data-lucide="trending-up"></i> <span data-i18n="dashboard.historicalAvg">Historical average</span>
+            <i data-lucide="trending-up"></i> Historical average
           </div>
         </div>
 
         <div class="stat-card glass">
-          <p style="font-size: 0.85rem; color: var(--text-muted);" data-i18n="dashboard.best">Best Day</p>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Best Day</p>
           <p class="stat-val animate-num" id="dash-best-score">--</p>
           <div class="stat-diff" style="color: var(--success);" id="dash-best-date">
             <i data-lucide="award"></i> Loading date...
@@ -2163,7 +2091,7 @@
         </div>
 
         <div class="stat-card glass">
-          <p style="font-size: 0.85rem; color: var(--text-muted);" data-i18n="dashboard.worst">Worst Day</p>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Worst Day</p>
           <p class="stat-val animate-num" id="dash-worst-score">--</p>
           <div class="stat-diff" style="color: var(--danger);" id="dash-worst-date">
             <i data-lucide="frown"></i> Loading date...
@@ -2171,18 +2099,18 @@
         </div>
 
         <div class="stat-card glass">
-          <p style="font-size: 0.85rem; color: var(--text-muted);" data-i18n="dashboard.streak">Current Streak</p>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Current Streak</p>
           <p class="stat-val animate-num" id="dash-streak">0</p>
           <div class="stat-diff" style="color: var(--secondary);">
-            <i data-lucide="flame"></i> <span data-i18n="dashboard.activeStreak">Active day streak</span>
+            <i data-lucide="flame"></i> Active day streak
           </div>
         </div>
 
         <div class="stat-card glass">
-          <p style="font-size: 0.85rem; color: var(--text-muted);" data-i18n="dashboard.weeklyAvg">Weekly Average</p>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Weekly Average</p>
           <p class="stat-val animate-num" id="dash-weekly-avg">--</p>
           <div class="stat-diff" style="color: #6366f1;">
-            <i data-lucide="calendar"></i> <span data-i18n="dashboard.rollingAvg">Rolling average</span>
+            <i data-lucide="calendar"></i> Rolling average
           </div>
         </div>
       </div>
@@ -2191,8 +2119,8 @@
       <div class="charts-grid">
         <div class="chart-container glass">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <h3 style="font-size: 1.1rem;" data-i18n="dashboard.scoreTimeline">Sleep score timeline</h3>
-            <span class="badge badge-secondary" data-i18n="dashboard.weeklyScores">Weekly Scores</span>
+            <h3 style="font-size: 1.1rem;">Sleep score timeline</h3>
+            <span class="badge badge-secondary">Weekly Scores</span>
           </div>
           <div class="canvas-wrap">
             <canvas id="dashboardLineChart"></canvas>
@@ -2201,7 +2129,7 @@
 
         <div class="chart-container glass">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <h3 style="font-size: 1.1rem;" data-i18n="dashboard.fatigueStress">Fatigue vs Stress Trend</h3>
+            <h3 style="font-size: 1.1rem;">Fatigue vs Stress Trend</h3>
           </div>
           <div class="canvas-wrap">
             <canvas id="dashboardBarChart"></canvas>
@@ -2210,7 +2138,7 @@
 
         <div class="chart-container glass" style="grid-column: span 2; min-height: 22rem;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <h3 style="font-size: 1.1rem;" data-i18n="dashboard.radarTitle">Circadian Balance Index Radar</h3>
+            <h3 style="font-size: 1.1rem;">Circadian Balance Index Radar</h3>
           </div>
           <div class="canvas-wrap" style="height: 18rem;">
             <canvas id="dashboardRadarChart"></canvas>
@@ -2222,9 +2150,9 @@
     <!-- STATISTICS SECTION -->
     <section id="statistics-section" class="page-section hidden">
       <div style="margin-bottom: 2rem;">
-        <span class="badge badge-primary" data-i18n="stats.badge">Deep Analytics</span>
-        <h2 style="font-size: 2.25rem; margin-top: 0.5rem;" data-i18n="stats.title">Biometric Vitals Statistics</h2>
-        <p style="color: var(--text-muted);" data-i18n="stats.subtitle">Analyze weekly or monthly trends of Sleep score, stress levels, fatigue, and energy recovery.</p>
+        <span class="badge badge-primary">Deep Analytics</span>
+        <h2 style="font-size: 2.25rem; margin-top: 0.5rem;">Biometric Vitals Statistics</h2>
+        <p style="color: var(--text-muted);">Analyze weekly or monthly trends of Sleep score, stress levels, fatigue, and energy recovery.</p>
       </div>
 
       <!-- Stats Toggle -->
@@ -2237,21 +2165,21 @@
 
       <div class="charts-grid">
         <div class="chart-container glass" style="grid-column: span 2;">
-          <h3 style="font-size: 1.1rem; margin-bottom: 1rem;" data-i18n="stats.primaryTrend">Primary Sleep Vitals Trend</h3>
+          <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">Primary Sleep Vitals Trend</h3>
           <div class="canvas-wrap" style="height: 18rem;">
             <canvas id="statsLineChart"></canvas>
           </div>
         </div>
 
         <div class="chart-container glass">
-          <h3 style="font-size: 1.1rem; margin-bottom: 1rem;" data-i18n="stats.energyFatigue">Energy vs Fatigue Consistency</h3>
+          <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">Energy vs Fatigue Consistency</h3>
           <div class="canvas-wrap">
             <canvas id="statsBarChart"></canvas>
           </div>
         </div>
 
         <div class="chart-container glass">
-          <h3 style="font-size: 1.1rem; margin-bottom: 1rem;" data-i18n="stats.stressIndex">Average Core Stress Index</h3>
+          <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">Average Core Stress Index</h3>
           <div class="canvas-wrap">
             <canvas id="statsStressChart"></canvas>
           </div>
@@ -2283,31 +2211,31 @@
     <!-- AI RECOMMENDATION SECTION -->
     <section id="recommendations-section" class="page-section hidden">
       <div style="margin-bottom: 2rem;">
-        <span class="badge badge-primary" data-i18n="rec.badge">Daily Circadian Guide</span>
-        <h2 style="font-size: 2.25rem; margin-top: 0.5rem;" data-i18n="rec.title">AI Daily Recommendations</h2>
-        <p style="color: var(--text-muted);" data-i18n="rec.subtitle">Personalized sleep hygiene cards generated based on your biometric logs.</p>
+        <span class="badge badge-primary">Daily Circadian Guide</span>
+        <h2 style="font-size: 2.25rem; margin-top: 0.5rem;">AI Daily Recommendations</h2>
+        <p style="color: var(--text-muted);">Personalized sleep hygiene cards generated based on your biometric logs.</p>
       </div>
 
       <div class="dashboard-grid" style="grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));">
         <div class="stat-card glass" style="padding: 1.75rem;">
           <i data-lucide="clock" style="color: var(--primary); margin-bottom: 1rem; width: 2rem; height: 2rem;"></i>
-          <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;" data-i18n="rec.bedtimeTitle">Recommended Bedtime</h3>
+          <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Recommended Bedtime</h3>
           <p style="font-size: 1.75rem; font-weight: 800; color: var(--primary);" id="rec-bedtime-val">10:45 PM</p>
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;" data-i18n="rec.bedtimeDesc">Aligning your circadian clock to catch the optimal slow-wave sleep window.</p>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">Aligning your circadian clock to catch the optimal slow-wave sleep window.</p>
         </div>
 
         <div class="stat-card glass" style="padding: 1.75rem;">
           <i data-lucide="sun" style="color: var(--secondary); margin-bottom: 1rem; width: 2rem; height: 2rem;"></i>
-          <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;" data-i18n="rec.wakeTitle">Recommended Wake-up</h3>
+          <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Recommended Wake-up</h3>
           <p style="font-size: 1.75rem; font-weight: 800; color: var(--secondary);" id="rec-wake-val">06:30 AM</p>
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;" data-i18n="rec.wakeDesc">Completing exactly 5 full sleep cycles (7.5 hours) to minimize morning grogginess.</p>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">Completing exactly 5 full sleep cycles (7.5 hours) to minimize morning grogginess.</p>
         </div>
 
         <div class="stat-card glass" style="padding: 1.75rem;">
           <i data-lucide="droplet" style="color: #6366f1; margin-bottom: 1rem; width: 2rem; height: 2rem;"></i>
-          <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;" data-i18n="rec.waterTitle">Water Intake</h3>
+          <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Water Intake</h3>
           <p style="font-size: 1.75rem; font-weight: 800; color: #6366f1;">2.8 Liters</p>
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;" data-i18n="rec.waterDesc">Drink 500ml immediately upon waking to restore cell freshness and skin hydration.</p>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">Drink 500ml immediately upon waking to restore cell freshness and skin hydration.</p>
         </div>
 
         <div class="stat-card glass" style="padding: 1.75rem;">
@@ -2396,6 +2324,15 @@
               <p style="font-size: 0.8rem; max-width: 18rem; margin: 0.25rem auto 0 auto;" data-i18n="scan.cameraHint">Allow webcam permissions or upload an image file.</p>
             </div>
           </div>
+          <!-- Face Guide Frame Overlay -->
+          <div id="tracking-face-guide-frame" class="hidden" style="position:absolute; inset:0; pointer-events:none; display:flex; align-items:center; justify-content:center; z-index:10;">
+            <div style="width:60%; height:70%; border:3px dashed rgba(16, 185, 129, 0.6); border-radius:50%; position:relative;">
+              <div style="position:absolute; top:-8px; left:50%; transform:translateX(-50%); background:rgba(16, 185, 129, 0.8); color:white; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:600;" data-i18n="report.faceGuide">Face Guide</div>
+              <div style="position:absolute; top:15%; left:50%; transform:translateX(-50%); width:30%; height:8px; border:2px solid rgba(16, 185, 129, 0.4); border-radius:4px;"></div>
+              <div style="position:absolute; top:50%; left:10%; transform:translateY(-50%); width:8px; height:15%; border:2px solid rgba(16, 185, 129, 0.4); border-radius:4px;"></div>
+              <div style="position:absolute; top:50%; right:10%; transform:translateY(-50%); width:8px; height:15%; border:2px solid rgba(16, 185, 129, 0.4); border-radius:4px;"></div>
+            </div>
+          </div>
         </div>
 
         <div class="scan-controls" style="margin-bottom: 1rem;">
@@ -2414,8 +2351,6 @@
           <i data-lucide="camera"></i>
           <span data-i18n="tracking.captureAnalyze">Capture & Analyze Day</span>
         </button>
-
-        <div id="tracking-face-validation-msg" class="face-validation-msg" role="alert" aria-live="polite"></div>
       </div>
 
       <!-- Day Report Viewer (tracking-only) -->
@@ -2447,18 +2382,18 @@
       <div class="weekly-report-card glass hidden" id="weekly-report-section">
         <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
           <span class="badge badge-danger" id="weekly-risk-badge">Moderate Fatigue Risk</span>
-          <h3 style="font-size: 1.75rem; margin-top: 0.5rem;" data-i18n="tracking.weeklyTitle">Weekly AI Wellness Assessment</h3>
-          <p style="color: var(--text-muted); font-size: 0.9rem;" data-i18n="tracking.weeklySubtitle">Aggregated analysis from your 7-day morning selfie logs.</p>
+          <h3 style="font-size: 1.75rem; margin-top: 0.5rem;">Weekly AI Wellness Assessment</h3>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">Aggregated analysis from your 7-day morning selfie logs.</p>
         </div>
 
         <div class="weekly-report-grid">
           <div>
-            <h4 style="font-size: 1.1rem; margin-bottom: 1rem;" data-i18n="tracking.riskIndices">Risk Indices</h4>
+            <h4 style="font-size: 1.1rem; margin-bottom: 1rem;">Risk Indices</h4>
             
             <div style="display: flex; flex-direction: column; gap: 1.25rem;">
               <div>
                 <div style="display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 0.4rem;">
-                  <span data-i18n="tracking.fatigueIndex">Fatigue Index</span>
+                  <span>Fatigue Index</span>
                   <span id="weekly-risk-fatigue">0%</span>
                 </div>
                 <div class="bar-bg">
@@ -2468,7 +2403,7 @@
 
               <div>
                 <div style="display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 0.4rem;">
-                  <span data-i18n="tracking.stressIndicators">Stress Indicators</span>
+                  <span>Stress Indicators</span>
                   <span id="weekly-risk-stress">0%</span>
                 </div>
                 <div class="bar-bg">
@@ -2478,7 +2413,7 @@
 
               <div>
                 <div style="display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 0.4rem;">
-                  <span data-i18n="tracking.burnoutIndex">Burnout Index</span>
+                  <span>Burnout Index</span>
                   <span id="weekly-risk-burnout">0%</span>
                 </div>
                 <div class="bar-bg">
@@ -2488,7 +2423,7 @@
 
               <div>
                 <div style="display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 0.4rem;">
-                  <span data-i18n="tracking.poorPattern">Poor Sleep Pattern Probability</span>
+                  <span>Poor Sleep Pattern Probability</span>
                   <span id="weekly-risk-pattern">0%</span>
                 </div>
                 <div class="bar-bg">
@@ -2500,7 +2435,7 @@
             <!-- Risk Gauge & Score Trend -->
             <div style="display: flex; justify-content: space-around; align-items: center; margin-top: 2rem;">
               <div style="text-align: center;">
-                <span style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.5rem;" data-i18n="tracking.riskGauge">Aggregated Risk Gauge</span>
+                <span style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.5rem;">Aggregated Risk Gauge</span>
                 <div style="position: relative; width: 120px; height: 80px;">
                   <svg width="120" height="80" viewBox="0 0 100 60">
                     <path d="M 15 50 A 35 35 0 0 1 85 50" stroke="rgba(0,0,0,0.06)" stroke-width="10" fill="none" stroke-linecap="round" class="gauge-bg-path"/>
@@ -2513,48 +2448,81 @@
               </div>
             </div>
 
+            <!-- Overall Wellness Score Circular Progress -->
+            <div style="margin-top: 2rem; text-align: center;">
+              <span style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.5rem;" data-i18n="report.overallWellness">Overall Wellness Score</span>
+              <div style="position: relative; width: 140px; height: 140px; margin: 0 auto;">
+                <svg width="140" height="140" viewBox="0 0 140 140">
+                  <circle cx="70" cy="70" r="60" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="12"/>
+                  <circle id="weekly-wellness-circle" cx="70" cy="70" r="60" fill="none" stroke="url(#scoreGradient)" stroke-width="12" stroke-linecap="round" stroke-dasharray="377" stroke-dashoffset="377" transform="rotate(-90 70 70)"/>
+                </svg>
+                <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                  <span style="font-size: 2rem; font-weight: 800; font-family: var(--font-heading);" id="weekly-wellness-score">0</span>
+                  <span style="font-size: 0.65rem; color: var(--text-muted);" data-i18n="report.wellness">WELLNESS</span>
+                </div>
+              </div>
+            </div>
+
           </div>
 
           <div>
-            <h4 style="font-size: 1.1rem; margin-bottom: 1rem;" data-i18n="tracking.aiSummary">AI Clinical Summary</h4>
+            <h4 style="font-size: 1.1rem; margin-bottom: 1rem;">AI Clinical Summary</h4>
             <p style="font-size: 0.92rem; margin-bottom: 1rem;" id="weekly-risk-summary">Biometric tracking logs reveal stable skin freshness, adequate hydration, and low stress indicators overall.</p>
             
             <!-- Trend Graph inside completed report -->
             <div style="margin-bottom: 1.5rem;">
-              <h5 style="font-size: 0.85rem; margin-bottom: 0.5rem; font-weight: 600;" data-i18n="tracking.scoreTrend">7-Day Sleep Score Trend</h5>
+              <h5 style="font-size: 0.85rem; margin-bottom: 0.5rem; font-weight: 600;">7-Day Sleep Score Trend</h5>
               <div style="height: 8rem; position: relative;">
                 <canvas id="weeklyTrendGraph"></canvas>
               </div>
             </div>
 
-            <h5 style="font-size: 0.95rem; margin-bottom: 0.5rem; font-weight: 600;" data-i18n="tracking.interventions">Recommended Interventions</h5>
+            <!-- Radar Chart for Trends -->
+            <div style="margin-bottom: 1.5rem;">
+              <h5 style="font-size: 0.85rem; margin-bottom: 0.5rem; font-weight: 600;" data-i18n="report.weeklyRadar">Weekly Metrics Radar</h5>
+              <div style="height: 10rem; position: relative;">
+                <canvas id="weeklyRadarChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Timeline Visualization -->
+            <div style="margin-bottom: 1.5rem;">
+              <h5 style="font-size: 0.85rem; margin-bottom: 0.5rem; font-weight: 600;" data-i18n="report.timeline">7-Day Timeline</h5>
+              <div style="display: flex; gap: 0.5rem; justify-content: space-between;" id="weekly-timeline">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
+            <!-- AI Wellness Risk Assessment -->
+            <div style="margin-bottom: 1.5rem; background: rgba(16, 185, 129, 0.05); padding: 1rem; border-radius: 0.75rem; border: 1px solid var(--border-color);">
+              <h5 style="font-size: 0.85rem; margin-bottom: 0.5rem; font-weight: 600; display: flex; align-items: center; gap: 0.4rem;">
+                <i data-lucide="activity" style="color: var(--primary); width: 1rem;"></i> <span data-i18n="report.riskAssessment">AI Wellness Risk Assessment</span>
+              </h5>
+              <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.85rem;" id="weekly-risk-assessment">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
+            <h5 style="font-size: 0.95rem; margin-bottom: 0.5rem; font-weight: 600;">Recommended Interventions</h5>
             <ul style="list-style-type: none; font-size: 0.88rem; display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem;" id="weekly-risk-recs">
               <!-- Dynamically populated -->
             </ul>
 
             <div class="disclaimer">
               <i data-lucide="alert-triangle" style="color: var(--warning); width: 1.75rem; flex-shrink: 0;"></i>
-              <p data-i18n="tracking.disclaimer">Notice: This assessment is a simulated wellness report and should not replace clinical evaluation by qualified healthcare professionals.</p>
+              <p><strong>Important:</strong> This AI assessment provides preliminary wellness information only and is not a medical diagnosis.</p>
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- Previous Tracking Results -->
-      <div class="tracking-history-section glass" id="tracking-history-section">
-        <h3 style="font-size: 1.15rem; margin-bottom: 0.25rem;" data-i18n="tracking.historyTitle">Previous Tracking Results</h3>
-        <p style="font-size: 0.88rem; color: var(--text-muted);" data-i18n="tracking.historySubtitle">Review completed 7-day challenges and their wellness reports.</p>
-        <div class="tracking-history-list" id="tracking-history-list"></div>
-        <p id="tracking-history-empty" class="hidden" style="font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; text-align: center;" data-i18n="tracking.historyEmpty">No completed challenges yet. Finish all 7 days to save your first report.</p>
       </div>
     </section>
 
     <!-- SLEEP KNOWLEDGE SECTION -->
     <section id="knowledge-section" class="page-section hidden">
       <div style="margin-bottom: 2rem;">
-        <span class="badge badge-primary" data-i18n="knowledge.badge">Education Center</span>
-        <h2 style="font-size: 2.25rem; margin-top: 0.5rem;" data-i18n="knowledge.title">Sleep Knowledge Portal</h2>
-        <p style="color: var(--text-muted);" data-i18n="knowledge.subtitle">Scientific article cards to help optimize your bedtime routine.</p>
+        <span class="badge badge-primary">Education Center</span>
+        <h2 style="font-size: 2.25rem; margin-top: 0.5rem;">Sleep Knowledge Portal</h2>
+        <p style="color: var(--text-muted);">Scientific article cards to help optimize your bedtime routine.</p>
       </div>
 
       <div class="knowledge-grid" id="articles-container">
@@ -2565,32 +2533,32 @@
     <!-- COMMUNITY FEED SECTION -->
     <section id="community-section" class="page-section hidden">
       <div style="margin-bottom: 2rem;">
-        <span class="badge badge-primary" data-i18n="community.badge">Social Feed</span>
-        <h2 style="font-size: 2.25rem; margin-top: 0.5rem;" data-i18n="community.title">Community Forum</h2>
-        <p style="color: var(--text-muted);" data-i18n="community.subtitle">Share sleep health scores, encourage friends, and swap circadian routines.</p>
+        <span class="badge badge-primary">Social Feed</span>
+        <h2 style="font-size: 2.25rem; margin-top: 0.5rem;">Community Forum</h2>
+        <p style="color: var(--text-muted);">Share sleep health scores, encourage friends, and swap circadian routines.</p>
       </div>
 
       <div class="comm-layout">
         <!-- Post Composer -->
         <div class="post-composer glass">
-          <h3 style="font-size: 1.15rem; margin-bottom: 1rem;" data-i18n="community.shareTitle">Share Your Status</h3>
-          <textarea class="textarea-glass" id="composer-text" data-i18n-placeholder="community.placeholder" placeholder="How did you wake up today? Share your thoughts..."></textarea>
+          <h3 style="font-size: 1.15rem; margin-bottom: 1rem;">Share Your Status</h3>
+          <textarea class="textarea-glass" id="composer-text" placeholder="How did you wake up today? Share your thoughts..."></textarea>
           
           <div style="display: flex; gap: 0.75rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
             <div style="display: flex; gap: 0.5rem; align-items: center;">
               <!-- Score inclusion checkbox -->
               <label style="display: flex; align-items: center; gap: 0.25rem; font-size: 0.8rem; cursor: pointer;">
-                <input type="checkbox" id="composer-include-score"> <span data-i18n="community.shareScore">Share Latest Score</span>
+                <input type="checkbox" id="composer-include-score"> Share Latest Score
               </label>
               
               <!-- Optional image attachment -->
               <button class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.8rem;" onclick="document.getElementById('composer-file').click()">
-                <i data-lucide="image" style="width: 1rem;"></i> <span data-i18n="community.attachImage">Attach Image</span>
+                <i data-lucide="image" style="width: 1rem;"></i> Attach Image
               </button>
               <input type="file" id="composer-file" accept="image/*" class="hidden">
             </div>
             
-            <button class="btn btn-primary" id="btn-post-submit" data-i18n="community.postBtn">Post Status</button>
+            <button class="btn btn-primary" id="btn-post-submit">Post Status</button>
           </div>
           
           <div id="composer-img-preview-box" class="hidden" style="position: relative; margin-top: 0.5rem; max-height: 8rem; border-radius: 0.5rem; overflow: hidden; border: 1px solid var(--border-color);">
@@ -2609,36 +2577,36 @@
     <!-- ABOUT SECTION -->
     <section id="about-section" class="page-section hidden">
       <div style="margin-bottom: 2rem;">
-        <span class="badge badge-primary" data-i18n="about.badge">Startup Vision</span>
-        <h2 style="font-size: 2.25rem; margin-top: 0.5rem;" data-i18n="about.title">About Smart Sleeping Healthy</h2>
-        <p style="color: var(--text-muted);" data-i18n="about.subtitle">Democratizing sleep wellness tracking through modern biometric imaging simulation.</p>
+        <span class="badge badge-primary">Startup Vision</span>
+        <h2 style="font-size: 2.25rem; margin-top: 0.5rem;">About Smart Sleeping Healthy</h2>
+        <p style="color: var(--text-muted);">Democratizing sleep wellness tracking through modern biometric imaging simulation.</p>
       </div>
 
       <div class="about-layout">
         <div class="glass" style="padding: 2rem;">
-          <h3 style="font-size: 1.35rem; margin-bottom: 1rem; color: var(--primary);" data-i18n="about.missionTitle">Our Mission & Tech</h3>
-          <p style="margin-bottom: 1rem; font-size: 0.95rem;" data-i18n="about.mission1">Smart Sleeping Healthy was founded with the goal of translating visual waking indicators—such as skin elasticity, hydration levels, and stress lines—into actionable sleep habit guidance.</p>
-          <p style="margin-bottom: 1rem; font-size: 0.95rem;" data-i18n="about.mission2">By offering localized browser scans, we allow users to connect their visual appearance with bedtime behaviors, driving the completion of a healthy 7-Day sleep routine program.</p>
+          <h3 style="font-size: 1.35rem; margin-bottom: 1rem; color: var(--primary);">Our Mission & Tech</h3>
+          <p style="margin-bottom: 1rem; font-size: 0.95rem;">Smart Sleeping Healthy was founded with the goal of translating visual waking indicators—such as skin elasticity, hydration levels, and stress lines—into actionable sleep habit guidance.</p>
+          <p style="margin-bottom: 1rem; font-size: 0.95rem;">By offering localized browser scans, we allow users to connect their visual appearance with bedtime behaviors, driving the completion of a healthy 7-Day sleep routine program.</p>
           
-          <div style="padding: 1rem; border-radius: 0.75rem; background: rgba(14, 165, 233, 0.08); border-left: 4px solid var(--secondary); font-size: 0.85rem; margin-top: 1.5rem;" data-i18n="about.advisory">
-            Advisory Note: This application serves as a startup demonstration of UX sleep tracking concept templates. It uses localized simulated algorithms and is NOT a medical diagnosis interface.
+          <div style="padding: 1rem; border-radius: 0.75rem; background: rgba(14, 165, 233, 0.08); border-left: 4px solid var(--secondary); font-size: 0.85rem; margin-top: 1.5rem;">
+            <strong>Advisory Note:</strong> This application serves as a startup demonstration of UX sleep tracking concept templates. It uses localized simulated algorithms and is NOT a medical diagnosis interface.
           </div>
         </div>
 
         <div class="glass" style="padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem;">
-          <h3 style="font-size: 1.35rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;" data-i18n="about.contactTitle">Get In Touch</h3>
+          <h3 style="font-size: 1.35rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">Get In Touch</h3>
           <form id="contact-form" onsubmit="handleContactSubmit(event)" style="display: flex; flex-direction: column; gap: 1rem;">
-            <input type="text" class="input-glass" data-i18n-placeholder="about.namePlaceholder" placeholder="Your Name" required>
-            <input type="email" class="input-glass" data-i18n-placeholder="about.emailPlaceholder" placeholder="Email Address" required>
-            <textarea class="textarea-glass" style="min-height: 4rem;" data-i18n-placeholder="about.messagePlaceholder" placeholder="Message..." required></textarea>
-            <button class="btn btn-primary" style="align-self: flex-start;" data-i18n="about.sendBtn">Send Message</button>
+            <input type="text" class="input-glass" placeholder="Your Name" required>
+            <input type="email" class="input-glass" placeholder="Email Address" required>
+            <textarea class="textarea-glass" style="min-height: 4rem;" placeholder="Message..." required></textarea>
+            <button class="btn btn-primary" style="align-self: flex-start;">Send Message</button>
           </form>
         </div>
       </div>
       
       <!-- Scientific Advisors -->
       <div class="glass" style="padding: 2rem; margin-bottom: 2rem;">
-        <h3 style="font-size: 1.35rem; margin-bottom: 1.5rem; text-align: center;" data-i18n="about.advisorsTitle">Clinical Advisory Board</h3>
+        <h3 style="font-size: 1.35rem; margin-bottom: 1.5rem; text-align: center;">Clinical Advisory Board</h3>
         <div class="dashboard-grid" style="grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));">
           <div style="text-align: center;">
             <img class="author-avatar" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%236366f1'><circle cx='50' cy='50' r='50'/><text x='50' y='60' font-size='25' fill='white' font-family='sans-serif' text-anchor='middle'>DR</text></svg>" style="width:4.5rem; height:4.5rem; margin-bottom: 0.75rem;" alt="Advisor 1">
@@ -2726,19 +2694,19 @@
     <!-- SETTINGS SECTION -->
     <section id="settings-section" class="page-section hidden">
       <div style="margin-bottom: 2rem;">
-        <span class="badge badge-primary" data-i18n="settings.badge">Configurations</span>
-        <h2 style="font-size: 2.25rem; margin-top: 0.5rem;" data-i18n="settings.title">System Settings</h2>
-        <p style="color: var(--text-muted);" data-i18n="settings.subtitle">Manage your sleep dashboard configurations, local language, and backup data.</p>
+        <span class="badge badge-primary">Configurations</span>
+        <h2 style="font-size: 2.25rem; margin-top: 0.5rem;">System Settings</h2>
+        <p style="color: var(--text-muted);">Manage your sleep dashboard configurations, local language, and backup data.</p>
       </div>
 
       <div class="settings-grid">
         <div class="settings-group glass">
-          <h3 style="font-size: 1.15rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;" data-i18n="settings.general">General Options</h3>
+          <h3 style="font-size: 1.15rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">General Options</h3>
           
           <div class="setting-item">
             <div class="setting-label-wrap">
-              <span style="font-weight: 600;" data-i18n="settings.darkMode">Dark Theme Mode</span>
-              <span class="setting-desc" data-i18n="settings.darkDesc">Activate visual sleep protection</span>
+              <span style="font-weight: 600;">Dark Theme Mode</span>
+              <span class="setting-desc">Activate visual sleep protection</span>
             </div>
             <label class="switch">
               <input type="checkbox" id="settings-darkmode">
@@ -2748,8 +2716,8 @@
 
           <div class="setting-item">
             <div class="setting-label-wrap">
-              <span style="font-weight: 600;" data-i18n="settings.alerts">Simulated System Alerts</span>
-              <span class="setting-desc" data-i18n="settings.alertsDesc">Allow toast alerts for sleep notifications</span>
+              <span style="font-weight: 600;">Simulated System Alerts</span>
+              <span class="setting-desc">Allow toast alerts for sleep notifications</span>
             </div>
             <label class="switch">
               <input type="checkbox" id="settings-notifications" checked>
@@ -2759,8 +2727,8 @@
 
           <div class="setting-item">
             <div class="setting-label-wrap">
-              <span style="font-weight: 600;" data-i18n="settings.language">Language Portal Selection</span>
-              <span class="setting-desc" data-i18n="settings.langDesc">Toggle layout reading language</span>
+              <span style="font-weight: 600;">Language Portal Selection</span>
+              <span class="setting-desc">Toggle layout reading language</span>
             </div>
             <select id="settings-lang" style="padding: 0.35rem 0.75rem; border-radius: 0.5rem; background: rgba(0,0,0,0.05); color: inherit; border: 1px solid var(--glass-border); outline: none;">
               <option value="en">English (US)</option>
@@ -2770,35 +2738,35 @@
         </div>
 
         <div class="settings-group glass">
-          <h3 style="font-size: 1.15rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;" data-i18n="settings.dataOps">Data Operations</h3>
+          <h3 style="font-size: 1.15rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">Data Operations</h3>
           
           <div class="setting-item">
             <div class="setting-label-wrap">
-              <span style="font-weight: 600;" data-i18n="settings.reset">Reset Sleeping Log Database</span>
-              <span class="setting-desc" data-i18n="settings.resetDesc">Permanently wipe all biometric scans</span>
+              <span style="font-weight: 600;">Reset Sleeping Log Database</span>
+              <span class="setting-desc">Permanently wipe all biometric scans</span>
             </div>
             <button class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-color: var(--danger); color: var(--danger);" onclick="resetSleepDatabase()">
-              <span data-i18n="settings.resetBtn">Reset Data</span>
+              Reset Data
             </button>
           </div>
 
           <div class="setting-item">
             <div class="setting-label-wrap">
-              <span style="font-weight: 600;" data-i18n="settings.export">Export Wellness Data</span>
-              <span class="setting-desc" data-i18n="settings.exportDesc">Save sleep scores to standard JSON</span>
+              <span style="font-weight: 600;">Export Wellness Data</span>
+              <span class="setting-desc">Save sleep scores to standard JSON</span>
             </div>
             <button class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="exportSleepDatabase()">
-              <i data-lucide="download" style="width: 0.9rem;"></i> <span data-i18n="settings.exportBtn">Export JSON</span>
+              <i data-lucide="download" style="width: 0.9rem;"></i> Export JSON
             </button>
           </div>
 
           <div class="setting-item">
             <div class="setting-label-wrap">
-              <span style="font-weight: 600;" data-i18n="settings.import">Import Database Backup</span>
-              <span class="setting-desc" data-i18n="settings.importDesc">Load sleep scores from JSON file</span>
+              <span style="font-weight: 600;">Import Database Backup</span>
+              <span class="setting-desc">Load sleep scores from JSON file</span>
             </div>
             <button class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="document.getElementById('import-file-selector').click()">
-              <i data-lucide="upload-cloud" style="width: 0.9rem;"></i> <span data-i18n="settings.importBtn">Import JSON</span>
+              <i data-lucide="upload-cloud" style="width: 0.9rem;"></i> Import JSON
             </button>
             <input type="file" id="import-file-selector" accept=".json" class="hidden">
           </div>
@@ -2807,20 +2775,6 @@
     </section>
 
   </main>
-
-  <!-- CAMERA PRE-CHECK MODAL -->
-  <div id="camera-precheck-modal" class="modal">
-    <div class="modal-content glass" style="max-width: 28rem; text-align: center;">
-      <button class="modal-close" onclick="closeCameraPrecheckModal()"><i data-lucide="x"></i></button>
-      <i data-lucide="glasses" class="camera-precheck-icon"></i>
-      <h3 style="font-size: 1.25rem; margin-bottom: 0.75rem;" data-i18n="scan.glassesWarningTitle">Before You Capture</h3>
-      <p style="font-size: 0.95rem; line-height: 1.55; margin-bottom: 1.5rem; color: var(--text-muted);" data-i18n="scan.glassesWarning">Please remove your glasses before taking a photo.</p>
-      <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
-        <button class="btn btn-secondary" onclick="closeCameraPrecheckModal()" data-i18n="common.cancel">Cancel</button>
-        <button class="btn btn-primary" id="btn-camera-precheck-confirm" data-i18n="scan.continueCamera">Continue to Camera</button>
-      </div>
-    </div>
-  </div>
 
   <!-- KNOWLEDGE MODAL -->
   <div id="article-reader-modal" class="modal">
@@ -2836,13 +2790,30 @@
   <div id="comments-modal" class="modal">
     <div class="modal-content glass" style="max-width: 32rem;">
       <button class="modal-close" onclick="closeCommentsModal()"><i data-lucide="x"></i></button>
-      <h3 style="font-size: 1.25rem; margin-bottom: 1rem;" data-i18n="community.commentsTitle">Post Comments</h3>
+      <h3 style="font-size: 1.25rem; margin-bottom: 1rem;">Post Comments</h3>
       <div id="comments-list" style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; max-height: 15rem; overflow-y: auto; padding-right: 0.5rem;">
         <!-- Comments populated dynamically -->
       </div>
       <div style="display: flex; gap: 0.5rem;">
-        <input type="text" id="comment-input" class="textarea-glass" style="min-height: 2.75rem; padding: 0.5rem 1rem;" data-i18n-placeholder="community.commentPlaceholder" placeholder="Add a comment...">
-        <button class="btn btn-primary" id="btn-submit-comment" data-i18n="community.sendComment">Send</button>
+        <input type="text" id="comment-input" class="textarea-glass" style="min-height: 2.75rem; padding: 0.5rem 1rem;" placeholder="Add a comment...">
+        <button class="btn btn-primary" id="btn-submit-comment">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GLASSES REMOVAL NOTICE MODAL -->
+  <div id="glasses-notice-modal" class="modal">
+    <div class="modal-content glass" style="max-width: 28rem; text-align: center;">
+      <div style="margin-bottom: 1.5rem;">
+        <i data-lucide="glasses" style="width: 3rem; height: 3rem; color: var(--primary);"></i>
+      </div>
+      <h3 style="font-size: 1.25rem; margin-bottom: 1rem;" id="glasses-notice-title">Glasses Removal Notice</h3>
+      <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.6;" id="glasses-notice-text">
+        Please remove your glasses before taking a photo for more accurate facial analysis.
+      </p>
+      <div style="display: flex; gap: 1rem; justify-content: center;">
+        <button class="btn btn-secondary" onclick="closeGlassesNotice()" id="glasses-notice-cancel">Cancel</button>
+        <button class="btn btn-primary" onclick="acknowledgeGlassesNotice()" id="glasses-notice-acknowledge">I Understand, Continue</button>
       </div>
     </div>
   </div>
@@ -2858,34 +2829,34 @@
           <i data-lucide="moon-star"></i>
           <span>Smart Sleeping Healthy</span>
         </a>
-        <p data-i18n="footer.tagline">Your companion for sleep quality monitoring and bedtime habit optimization. Utilizing simulated biometric computer-vision overlays.</p>
+        <p>Your companion for sleep quality monitoring and bedtime habit optimization. Utilizing simulated biometric computer-vision overlays.</p>
       </div>
       <div class="footer-col">
-        <h4 data-i18n="footer.navigation">Navigation</h4>
+        <h4>Navigation</h4>
         <ul class="footer-links">
-          <li><a onclick="navigateTo('home')" data-i18n="nav.home">Home</a></li>
-          <li><a onclick="navigateTo('scan')" data-i18n="nav.scan">AI Scan</a></li>
-          <li><a onclick="navigateTo('dashboard')" data-i18n="nav.dashboard">Dashboard</a></li>
-          <li><a onclick="navigateTo('premium')" data-i18n="nav.premium">Premium</a></li>
-          <li><a onclick="navigateTo('tracking')" data-i18n="footer.tracking">7-Day Challenge</a></li>
+          <li><a onclick="navigateTo('home')">Home</a></li>
+          <li><a onclick="navigateTo('scan')">AI Scan</a></li>
+          <li><a onclick="navigateTo('dashboard')">Dashboard</a></li>
+          <li><a onclick="navigateTo('premium')">Premium</a></li>
+          <li><a onclick="navigateTo('tracking')">7-Day Challenge</a></li>
         </ul>
       </div>
       <div class="footer-col">
-        <h4 data-i18n="footer.support">Support</h4>
+        <h4>Support</h4>
         <ul class="footer-links">
-          <li><a onclick="showFAQModal()" data-i18n="footer.faq">FAQ Database</a></li>
-          <li><a onclick="navigateTo('about')" data-i18n="footer.about">About Us & Team</a></li>
-          <li><a onclick="showToast(t('footer.privacyLoading'))" data-i18n="footer.privacy">Privacy Policy</a></li>
+          <li><a onclick="showFAQModal()">FAQ Database</a></li>
+          <li><a onclick="navigateTo('about')">About Us & Team</a></li>
+          <li><a onclick="showToast('Loading Privacy terms...')">Privacy Policy</a></li>
         </ul>
       </div>
       <div class="footer-col">
-        <h4 data-i18n="footer.disclaimerTitle">Disclaimer Notice</h4>
-        <p style="font-size: 0.75rem;" data-i18n="footer.disclaimer">This tool does not replace medical diagnostics. Our AI scores are simulations intended to promote healthy waking behaviors.</p>
+        <h4>Disclaimer Notice</h4>
+        <p style="font-size: 0.75rem;">This tool does not replace medical diagnostics. Our AI scores are simulations intended to promote healthy waking behaviors.</p>
       </div>
     </div>
     <div class="container footer-bottom">
-      <p data-i18n="footer.copyright">&copy; 2026 Smart Sleeping Healthy Inc. All Rights Reserved.</p>
-      <p data-i18n="footer.madeWith">Made with &hearts; in California</p>
+      <p>&copy; 2026 Smart Sleeping Healthy Inc. All Rights Reserved.</p>
+      <p>Made with &hearts; in California</p>
     </div>
   </footer>
 
@@ -2901,7 +2872,6 @@
       currentTab: 'home',
       sleepHistory: [],
       trackingDays: {},
-      trackingHistory: [],
       communityPosts: [],
       currentWebcamStream: null,
       activeScanImageBase64: null,
@@ -2909,20 +2879,30 @@
       statsRange: 'weekly',
       trackingActiveDay: null,
       trackingStream: null,
-      trackingImageBase64: null,
-      scanFaceValidated: false,
-      trackingFaceValidated: false,
-      pendingCameraContext: null
+      trackingImageBase64: null
     };
 
     const LOCAL_STORAGE_HISTORY_KEY = 'ssh_sleep_history';
     const LOCAL_STORAGE_TRACKING_KEY = 'ssh_tracking_days';
-    const LOCAL_STORAGE_TRACKING_HISTORY_KEY = 'ssh_tracking_history';
     const LOCAL_STORAGE_COMMUNITY_KEY = 'ssh_community_posts';
     const LOCAL_STORAGE_THEME_KEY = 'ssh_theme_pref';
     const LOCAL_STORAGE_LANG_KEY = 'ssh_lang_pref';
     const LOCAL_STORAGE_PREMIUM_KEY = 'ssh_premium';
     const FREE_SCAN_HISTORY_LIMIT = 15;
+    const ANALYSIS_STORAGE_KEYS = [
+      'date', 'analyzedAt', 'score', 'energy', 'darkCircles', 'skinFreshness',
+      'stress', 'hydration', 'sleepQuality', 'mood', 'summary', 'recommendations', 'premiumDetail'
+    ];
+    const FACE_VALIDATION = {
+      detectorMinConfidence: 0.5,
+      rejectConfidence: 0.7,
+      minFaceAreaRatio: 0.03,
+      maxCenterOffset: 0.38,
+      extremeDarkBrightness: 28,
+      extremeBlurSharpness: 18
+    };
+    let faceModelsLoaded = false;
+    let faceModelsLoading = null;
 
     /* ----------------------------------------------------
        INTERNATIONALIZATION (EN / TH)
@@ -2964,16 +2944,6 @@
         'scan.complete': 'Morning selfie analysis complete!', 'scan.uploaded': 'Selfie uploaded.',
         'scan.cameraActive': 'Camera feed active.', 'scan.cameraStopped': 'Camera stream stopped.',
         'scan.cameraBlocked': 'Camera permissions blocked. Please upload a file instead.',
-        'scan.glassesWarningTitle': 'Before You Capture',
-        'scan.glassesWarning': 'Please remove your glasses before taking a photo.',
-        'scan.continueCamera': 'Continue to Camera',
-        'scan.noValidFace': 'No valid face detected. Please retake your photo.',
-        'scan.noRealHumanFace': 'No valid real human face detected. Please capture a clear photo of a real person and try again.',
-        'scan.faceValidated': 'Valid human face detected. You may proceed with analysis.',
-        'scan.validatingFace': 'Verifying human face presence...',
-        'scan.multipleFaces': 'Multiple faces detected. Please capture a photo with only your face.',
-        'scan.faceTooSmall': 'Face is too small or far away. Move closer and retake your photo.',
-        'scan.facePoseInvalid': 'Face angle is too extreme. Look directly at the camera and try again.',
         'dashboard.badge': 'Circadian Management', 'dashboard.title': 'Interactive Dashboard',
         'dashboard.subtitle': 'Comprehensive view of your sleep score history, Streaks and analytical charts.',
         'dashboard.today': "Today's Sleep Score", 'dashboard.avg': 'Average Score',
@@ -2992,13 +2962,6 @@
         'stats.stressIndex': 'Average Core Stress Index', 'stats.monthlyLocked': '30-Day view requires Premium',
         'rec.badge': 'Daily Circadian Guide', 'rec.title': 'AI Daily Recommendations',
         'rec.subtitle': 'Personalized sleep hygiene cards generated based on your biometric logs.',
-        'rec.bedtimeTitle': 'Recommended Bedtime',
-        'rec.bedtimeDesc': 'Aligning your circadian clock to catch the optimal slow-wave sleep window.',
-        'rec.wakeTitle': 'Recommended Wake-up',
-        'rec.wakeDesc': 'Completing exactly 5 full sleep cycles (7.5 hours) to minimize morning grogginess.',
-        'rec.waterTitle': 'Water Intake',
-        'rec.waterDesc': 'Drink 500ml immediately upon waking to restore cell freshness and skin hydration.',
-        'rec.weeklyInsightsTitle': 'Weekly AI Insights',
         'tracking.badge': 'Habit Challenges', 'tracking.title': '7-Day Sleep Tracking Challenge',
         'tracking.subtitle': 'Capture a waking snapshot each day on this page to build your AI Sleep Risk Profile.',
         'tracking.timeline': 'Timeline Logs', 'tracking.captureTitle': 'Day {n} — Capture Photo',
@@ -3006,7 +2969,7 @@
         'tracking.captureAnalyze': 'Capture & Analyze Day', 'tracking.dayReport': 'Day {n} Report',
         'tracking.complete': 'Complete! Click unlock to load weekly assessment.',
         'tracking.progress': 'Progress: {n}/7 Days. Tap a day to capture your morning selfie.',
-        'tracking.dayLogged': 'Day {n} logged successfully!', 'tracking.dayExists': 'Day {n} already has a record.',
+        'tracking.dayLogged': 'Day {n} logged successfully!', 'tracking.dayExists': 'Day {n} already has a photo.',
         'tracking.viewDay': 'Viewing Day {n} report', 'tracking.unlockWeekly': 'Unlock Weekly Report',
         'tracking.weeklyTitle': 'Weekly AI Wellness Assessment', 'tracking.weeklySubtitle': 'Aggregated analysis from your 7-day morning selfie logs.',
         'tracking.riskIndices': 'Risk Indices', 'tracking.fatigueIndex': 'Fatigue Index',
@@ -3015,92 +2978,6 @@
         'tracking.aiSummary': 'AI Clinical Summary', 'tracking.scoreTrend': '7-Day Sleep Score Trend',
         'tracking.interventions': 'Recommended Interventions', 'tracking.weeklyGenerated': '7-Day analysis generated!',
         'tracking.disclaimer': 'Notice: This assessment is a simulated wellness report and should not replace clinical evaluation by qualified healthcare professionals.',
-        'tracking.historyTitle': 'Previous Tracking Results',
-        'tracking.historySubtitle': 'Review completed 7-day challenges and their wellness reports.',
-        'tracking.historyEmpty': 'No completed challenges yet. Finish all 7 days to save your first report.',
-        'tracking.historyAvgScore': 'Avg Score: {n}/100',
-        'tracking.historyDays': '{n} days logged',
-        'tracking.viewHistory': 'Viewing challenge from {date}',
-        'tracking.intervention1': 'Restrict blue light stimulation exactly 1.5 hours prior to bedtime.',
-        'tracking.intervention2': 'Exercise 30 minutes daily before 6 PM.',
-        'tracking.intervention3': 'Sustain hydration at a baseline of 2.8L daily.',
-        'tracking.intervention4': 'Schedule a medical check-up if chronic morning fatigue continues.',
-        'tracking.summaryHigh': 'Your 7-day average score was {score}/100. Biometrics show significant fatigue patterns. Clinical evaluation is recommended if these indicators persist.',
-        'tracking.summaryLow': 'Your 7-day average score was {score}/100. Biometric profiles indicate low-to-moderate fatigue risk. Sleep consistency remains stable.',
-        'summary.optimal': 'Sleep Summary: Your facial biometrics reflect optimal recovery. Dark circle contrast is low and micro-expression strain is minimal. Cellular hydration levels are high.',
-        'summary.moderate': 'Sleep Summary: Moderate fatigue markers are visible. We detected mild orbital tension and decreased dermal reflection, typical of partial circadian lag.',
-        'summary.poor': 'Sleep Summary: Biometrics show notable fatigue. Increased orbital shadow depth and facial muscle contraction indicate a significant sleep debt.',
-        'rec.water': 'Drink 500ml of water immediately to restore skin moisture.',
-        'rec.bedtime': 'Sleep before 11 PM tonight to capture prime delta-wave windows.',
-        'rec.screen': 'Reduce screen time at least 60 minutes before closing your eyes.',
-        'rec.exercise': 'Exercise 30 minutes today before 6 PM to boost melatonin.',
-        'rec.meditation': 'Perform a 10-minute wind-down meditation to decrease heart rate.',
-        'community.shareTitle': 'Share Your Status',
-        'community.placeholder': 'How did you wake up today? Share your thoughts...',
-        'community.shareScore': 'Share Latest Score',
-        'community.attachImage': 'Attach Image',
-        'community.postBtn': 'Post Status',
-        'community.commentsTitle': 'Post Comments',
-        'community.commentPlaceholder': 'Add a comment...',
-        'community.sendComment': 'Send',
-        'community.emptyPost': 'Cannot post an empty status.',
-        'community.postShared': 'Post shared to timeline.',
-        'community.linkCopied': 'Link copied to clipboard! (Simulated)',
-        'community.commentAdded': 'Comment added.',
-        'community.noComments': 'No comments yet. Share your thoughts!',
-        'community.like': 'Like',
-        'community.likes': 'Likes',
-        'community.comment': 'Comment',
-        'community.comments': 'Comments',
-        'community.share': 'Share',
-        'community.sleepScore': 'Sleep: {n}',
-        'community.me': 'Me (You)',
-        'community.justNow': 'Just now',
-        'about.badge': 'Startup Vision',
-        'about.title': 'About Smart Sleeping Healthy',
-        'about.subtitle': 'Democratizing sleep wellness tracking through modern biometric imaging simulation.',
-        'about.missionTitle': 'Our Mission & Tech',
-        'about.mission1': 'Smart Sleeping Healthy was founded with the goal of translating visual waking indicators—such as skin elasticity, hydration levels, and stress lines—into actionable sleep habit guidance.',
-        'about.mission2': 'By offering localized browser scans, we allow users to connect their visual appearance with bedtime behaviors, driving the completion of a healthy 7-Day sleep routine program.',
-        'about.advisory': 'Advisory Note: This application serves as a startup demonstration of UX sleep tracking concept templates. It uses localized simulated algorithms and is NOT a medical diagnosis interface.',
-        'about.contactTitle': 'Get In Touch',
-        'about.namePlaceholder': 'Your Name',
-        'about.emailPlaceholder': 'Email Address',
-        'about.messagePlaceholder': 'Message...',
-        'about.sendBtn': 'Send Message',
-        'about.advisorsTitle': 'Clinical Advisory Board',
-        'about.messageSent': 'Message sent to support! We will reply within 24 hours.',
-        'settings.resetBtn': 'Reset Data',
-        'settings.exportBtn': 'Export JSON',
-        'settings.importBtn': 'Import JSON',
-        'settings.resetConfirm': 'Are you sure you want to permanently delete all sleep logs and timeline tracking?',
-        'settings.resetDone': 'Database successfully wiped.',
-        'settings.exportDone': 'JSON backup generated!',
-        'settings.importDone': 'Database successfully imported!',
-        'settings.importInvalid': 'Invalid file structure.',
-        'settings.importError': 'Error parsing file.',
-        'settings.storageLimit': 'Storage limit reached. Consider exporting data.',
-        'footer.tagline': 'Your companion for sleep quality monitoring and bedtime habit optimization. Utilizing simulated biometric computer-vision overlays.',
-        'footer.navigation': 'Navigation',
-        'footer.tracking': '7-Day Challenge',
-        'footer.support': 'Support',
-        'footer.faq': 'FAQ Database',
-        'footer.about': 'About Us & Team',
-        'footer.privacy': 'Privacy Policy',
-        'footer.privacyLoading': 'Loading Privacy terms...',
-        'footer.disclaimerTitle': 'Disclaimer Notice',
-        'footer.disclaimer': 'This tool does not replace medical diagnostics. Our AI scores are simulations intended to promote healthy waking behaviors.',
-        'footer.copyright': '© 2026 Smart Sleeping Healthy Inc. All Rights Reserved.',
-        'footer.madeWith': 'Made with ♥ in California',
-        'premium.monthlySummaryTpl': '30-day average score: {avg}/100 | Trend: {trend} points | Total logs: {count}',
-        'premium.detailTpl': 'Deep circadian analysis: Score {score}/100 | Hydration {hydration}% | Stress {stress}% — Maintain consistent bedtime routines and monitor weekly trends for optimal recovery.',
-        'faq.title': 'Frequently Asked Questions',
-        'faq.q1': 'Is the Sleep Scan clinically accurate?',
-        'faq.a1': 'No. The scanning software performs a localized visual simulation based on facial lighting and contrast. It is purely designed as a habit-promoting wellness aid, and does not provide medical diagnoses.',
-        'faq.q2': 'How is my privacy managed?',
-        'faq.a2': "All captured photos are rendered locally within your browser canvas and stored strictly inside your browser's LocalStorage. No biometric data is sent to external servers or databases.",
-        'faq.q3': 'How do I complete the 7-day challenge?',
-        'faq.a3': 'Open the 7-Day Tracking page and capture or upload one photo per day on that page only. AI Scan photos are never stored in the timeline. Day 7 unlocks the cumulative Risk profile.',
         'premium.badge': 'Premium', 'premium.title': 'Upgrade to Premium',
         'premium.subtitle': 'Unlock advanced AI sleep analysis features. Premium analysis is a simulation and not a medical diagnosis.',
         'premium.perMonth': 'per month', 'premium.upgradeBtn': 'Upgrade to Premium',
@@ -3146,7 +3023,32 @@
         'mood.refreshed': 'Refreshed', 'mood.calm': 'Calm', 'mood.fatigued': 'Fatigued',
         'mood.alert': 'Alert', 'mood.neutral': 'Neutral', 'mood.tired': 'Tired',
         'risk.high': 'High Risk: Circadian Fatigue & Burnout', 'risk.moderate': 'Moderate Risk: Circadian Fatigue Pattern',
-        'risk.low': 'Low Risk: Balanced Sleep Patterns'
+        'risk.low': 'Low Risk: Balanced Sleep Patterns',
+        'face.noValidFace': 'No valid human face detected. Please take the photo again.',
+        'face.noFace': 'No face detected. Please position your face in the frame.',
+        'face.lowConfidence': 'Face confidence too low. Please take the photo again.',
+        'face.multipleFaces': 'Multiple faces detected. Please ensure only your face is visible.',
+        'face.offCenter': 'Face is outside the guide frame. Please reposition your face.',
+        'face.tooDark': 'Lighting is too low. Please add more light.',
+        'face.tooBright': 'Lighting is too bright. Please reduce brightness or move away from light source.',
+        'face.blurry': 'Image is blurry. Please take the photo again.',
+        'face.notFacing': 'Please face forward.',
+        'face.tooFar': 'Please move closer to the camera.',
+        'face.validationPassed': 'Face validation passed. Ready to capture.',
+        'face.validationFailed': 'Face validation failed. Please adjust and try again.',
+        'face.modelsLoading': 'Loading face detection models...',
+        'face.modelsFailed': 'Face detection unavailable. Please refresh and try again.',
+        'toast.storageLimit': 'Storage limit reached. Consider exporting data.',
+        'report.overallWellness': 'Overall Wellness Score',
+        'report.weeklyRadar': 'Weekly Metrics Radar',
+        'report.timeline': '7-Day Timeline',
+        'report.riskAssessment': 'AI Wellness Risk Assessment',
+        'report.sleepApneaRisk': 'Sleep Apnea Risk',
+        'report.insomniaRisk': 'Insomnia Risk',
+        'report.circadianRisk': 'Circadian Rhythm Disorder',
+        'report.chronicFatigueRisk': 'Chronic Fatigue Syndrome',
+        'report.wellness': 'WELLNESS',
+        'report.faceGuide': 'Face Guide'
       },
       th: {
         'nav.home': 'หน้าแรก', 'nav.scan': 'สแกน AI', 'nav.scanFull': 'สแกนการนอน AI',
@@ -3184,16 +3086,6 @@
         'scan.complete': 'วิเคราะห์เซลฟี่ตอนเช้าเสร็จสิ้น!', 'scan.uploaded': 'อัปโหลดเซลฟี่แล้ว',
         'scan.cameraActive': 'กล้องทำงานแล้ว', 'scan.cameraStopped': 'ปิดกล้องแล้ว',
         'scan.cameraBlocked': 'ไม่ได้รับอนุญาตกล้อง กรุณาอัปโหลดไฟล์แทน',
-        'scan.glassesWarningTitle': 'ก่อนถ่ายภาพ',
-        'scan.glassesWarning': 'กรุณาถอดแว่นตาก่อนถ่ายภาพ',
-        'scan.continueCamera': 'ดำเนินการเปิดกล้อง',
-        'scan.noValidFace': 'ไม่พบใบหน้าที่ถูกต้อง กรุณาถ่ายภาพใหม่',
-        'scan.noRealHumanFace': 'ไม่พบใบหน้ามนุษย์ที่ถูกต้อง กรุณาถ่ายภาพบุคคลจริงที่ชัดเจนแล้วลองอีกครั้ง',
-        'scan.faceValidated': 'ตรวจพบใบหน้ามนุษย์ที่ถูกต้อง คุณสามารถดำเนินการวิเคราะห์ได้',
-        'scan.validatingFace': 'กำลังตรวจสอบใบหน้ามนุษย์...',
-        'scan.multipleFaces': 'ตรวจพบหลายใบหน้า กรุณาถ่ายภาพที่มีเฉพาะใบหน้าของคุณ',
-        'scan.faceTooSmall': 'ใบหน้าเล็กเกินไปหรืออยู่ไกลเกินไป กรุณาเข้าใกล้และถ่ายใหม่',
-        'scan.facePoseInvalid': 'มุมใบหน้าเอียงเกินไป กรุณามองตรงกล้องและลองอีกครั้ง',
         'dashboard.badge': 'จัดการจังหวะชีวิต', 'dashboard.title': 'แดชบอร์ดแบบโต้ตอบ',
         'dashboard.subtitle': 'มุมมองครบถ้วนของประวัติคะแนนการนอน สตรีค และกราฟวิเคราะห์',
         'dashboard.today': 'คะแนนการนอนวันนี้', 'dashboard.avg': 'คะแนนเฉลี่ย',
@@ -3212,13 +3104,6 @@
         'stats.stressIndex': 'ดัชนีความเครียดหลักเฉลี่ย', 'stats.monthlyLocked': 'มุมมอง 30 วันต้องใช้พรีเมียม',
         'rec.badge': 'คู่มือจังหวะชีวิตรายวัน', 'rec.title': 'คำแนะนำรายวัน AI',
         'rec.subtitle': 'การ์ดสุขอนามัยการนอนส่วนบุคคลจากบันทึกไบโอเมตริกของคุณ',
-        'rec.bedtimeTitle': 'เวลาเข้านอนที่แนะนำ',
-        'rec.bedtimeDesc': 'ปรับนาฬิกาชีวิตให้จับช่วงการนอนหลับลึกที่ดีที่สุด',
-        'rec.wakeTitle': 'เวลาตื่นที่แนะนำ',
-        'rec.wakeDesc': 'ครบ 5 รอบการนอน (7.5 ชั่วโมง) เพื่อลดอาการมึนงงตอนเช้า',
-        'rec.waterTitle': 'ปริมาณน้ำที่แนะนำ',
-        'rec.waterDesc': 'ดื่มน้ำ 500 มล. ทันทีหลังตื่นเพื่อฟื้นความสดชื่นของเซลล์และผิว',
-        'rec.weeklyInsightsTitle': 'ข้อมูลเชิงลึก AI รายสัปดาห์',
         'tracking.badge': 'ความท้าทายนิสัย', 'tracking.title': 'ความท้าทายติดตามการนอน 7 วัน',
         'tracking.subtitle': 'ถ่ายภาพตอนตื่นทุกวันบนหน้านี้เพื่อสร้างโปรไฟล์ความเสี่ยงการนอน AI',
         'tracking.timeline': 'บันทึกไทม์ไลน์', 'tracking.captureTitle': 'วันที่ {n} — ถ่ายภาพ',
@@ -3226,7 +3111,7 @@
         'tracking.captureAnalyze': 'ถ่ายและวิเคราะห์วันนี้', 'tracking.dayReport': 'รายงานวันที่ {n}',
         'tracking.complete': 'ครบแล้ว! กดปลดล็อกเพื่อโหลดการประเมินรายสัปดาห์',
         'tracking.progress': 'ความคืบหน้า: {n}/7 วัน แตะวันเพื่อถ่ายเซลฟี่ตอนเช้า',
-        'tracking.dayLogged': 'บันทึกวันที่ {n} สำเร็จ!', 'tracking.dayExists': 'วันที่ {n} มีบันทึกแล้ว',
+        'tracking.dayLogged': 'บันทึกวันที่ {n} สำเร็จ!', 'tracking.dayExists': 'วันที่ {n} มีภาพแล้ว',
         'tracking.viewDay': 'กำลังดูรายงานวันที่ {n}', 'tracking.unlockWeekly': 'ปลดล็อกรายงานรายสัปดาห์',
         'tracking.weeklyTitle': 'การประเมินสุขภาพ AI รายสัปดาห์', 'tracking.weeklySubtitle': 'การวิเคราะห์รวมจากบันทึกเซลฟี่ตอนเช้า 7 วัน',
         'tracking.riskIndices': 'ดัชนีความเสี่ยง', 'tracking.fatigueIndex': 'ดัชนีความเหนื่อยล้า',
@@ -3235,92 +3120,6 @@
         'tracking.aiSummary': 'สรุปทางคลินิก AI', 'tracking.scoreTrend': 'แนวโน้มคะแนนการนอน 7 วัน',
         'tracking.interventions': 'การแทรกแซงที่แนะนำ', 'tracking.weeklyGenerated': 'สร้างการวิเคราะห์ 7 วันแล้ว!',
         'tracking.disclaimer': 'ประกาศ: การประเมินนี้เป็นรายงานสุขภาพจำลองและไม่ควรทดแทนการประเมินทางคลินิกจากผู้เชี่ยวชาญ',
-        'tracking.historyTitle': 'ผลการติดตามก่อนหน้า',
-        'tracking.historySubtitle': 'ดูความท้าทาย 7 วันที่เสร็จสมบูรณ์และรายงานสุขภาพ',
-        'tracking.historyEmpty': 'ยังไม่มีความท้าทายที่เสร็จสมบูรณ์ ทำครบ 7 วันเพื่อบันทึกรายงานแรก',
-        'tracking.historyAvgScore': 'คะแนนเฉลี่ย: {n}/100',
-        'tracking.historyDays': 'บันทึก {n} วัน',
-        'tracking.viewHistory': 'กำลังดูความท้าทายจาก {date}',
-        'tracking.intervention1': 'จำกัดแสงฟ้าก่อนนอน 1.5 ชั่วโมง',
-        'tracking.intervention2': 'ออกกำลังกาย 30 นาทีก่อน 18:00 น.',
-        'tracking.intervention3': 'ดื่มน้ำอย่างน้อย 2.8 ลิตรต่อวัน',
-        'tracking.intervention4': 'นัดตรวจสุขภาพหากเหนื่อยล้าตอนเช้าต่อเนื่อง',
-        'tracking.summaryHigh': 'คะแนนเฉลี่ย 7 วัน {score}/100 ไบโอเมตริกแสดงความเหนื่อยล้าชัดเจน แนะนำปรึกษาผู้เชี่ยวชาญหากอาการคงอยู่',
-        'tracking.summaryLow': 'คะแนนเฉลี่ย 7 วัน {score}/100 โปรไฟล์ไบโอเมตริกแสดงความเสี่ยงต่ำถึงปานกลาง ความสม่ำเสมอการนอนยังคงดี',
-        'summary.optimal': 'สรุปการนอน: ไบโอเมตริกใบหน้าสะท้อนการฟื้นตัวที่ดี ขอบตาคล้ำต่ำและความตึงเครียดน้อย ระดับความชุ่มชื้นสูง',
-        'summary.moderate': 'สรุปการนอน: พบตัวชี้วัดความเหนื่อยล้าปานกลาง ตรวจพบความตึงรอบตาเล็กน้อยและการสะท้อนแสงผิวลดลง',
-        'summary.poor': 'สรุปการนอน: ไบโอเมตริกแสดงความเหนื่อยล้าชัดเจน เงาใต้ตาลึกขึ้นและกล้ามเนื้อใบหน้าตึง บ่งชี้หนี้การนอนสูง',
-        'rec.water': 'ดื่มน้ำ 500 มล. ทันทีเพื่อฟื้นความชุ่มชื้นผิว',
-        'rec.bedtime': 'เข้านอนก่อน 23:00 น. เพื่อจับช่วงคลื่นเดลต้าที่ดีที่สุด',
-        'rec.screen': 'ลดเวลาหน้าจอก่อนปิดตาอย่างน้อย 60 นาที',
-        'rec.exercise': 'ออกกำลังกาย 30 นาทีก่อน 18:00 น. เพื่อกระตุ้นเมลาโทนิน',
-        'rec.meditation': 'ทำสมาธิผ่อนคลาย 10 นาทีเพื่อลดอัตราการเต้นหัวใจ',
-        'community.shareTitle': 'แชร์สถานะของคุณ',
-        'community.placeholder': 'ตื่นนอนวันนี้เป็นอย่างไร? แชร์ความคิดของคุณ...',
-        'community.shareScore': 'แชร์คะแนนล่าสุด',
-        'community.attachImage': 'แนบรูปภาพ',
-        'community.postBtn': 'โพสต์สถานะ',
-        'community.commentsTitle': 'ความคิดเห็น',
-        'community.commentPlaceholder': 'เพิ่มความคิดเห็น...',
-        'community.sendComment': 'ส่ง',
-        'community.emptyPost': 'ไม่สามารถโพสต์สถานะว่างได้',
-        'community.postShared': 'แชร์โพสต์ไปยังไทม์ไลน์แล้ว',
-        'community.linkCopied': 'คัดลอกลิงก์แล้ว! (จำลอง)',
-        'community.commentAdded': 'เพิ่มความคิดเห็นแล้ว',
-        'community.noComments': 'ยังไม่มีความคิดเห็น แชร์ความคิดของคุณ!',
-        'community.like': 'ถูกใจ',
-        'community.likes': 'ถูกใจ',
-        'community.comment': 'ความคิดเห็น',
-        'community.comments': 'ความคิดเห็น',
-        'community.share': 'แชร์',
-        'community.sleepScore': 'การนอน: {n}',
-        'community.me': 'ฉัน (คุณ)',
-        'community.justNow': 'เมื่อสักครู่',
-        'about.badge': 'วิสัยทัศน์สตาร์ทอัพ',
-        'about.title': 'เกี่ยวกับ Smart Sleeping Healthy',
-        'about.subtitle': 'ทำให้การติดตามสุขภาพการนอนเข้าถึงได้ผ่านการจำลองไบโอเมตริก',
-        'about.missionTitle': 'พันธกิจและเทคโนโลยี',
-        'about.mission1': 'Smart Sleeping Healthy ก่อตั้งขึ้นเพื่อแปลตัวชี้วัดตอนตื่น เช่น ความยืดหยุ่นผิว ระดับความชุ่มชื้น และร่องรอยความเครียด เป็นแนวทางพฤติกรรมการนอน',
-        'about.mission2': 'ด้วยการสแกนในเบราว์เซอร์ ผู้ใช้เชื่อมโยงลักษณะภายนอกกับพฤติกรรมก่อนนอน เพื่อทำโปรแกรม 7 วันให้สำเร็จ',
-        'about.advisory': 'หมายเหตุ: แอปนี้เป็นการสาธิต UX การติดตามการนอน ใช้อัลกอริทึมจำลอง ไม่ใช่การวินิจฉัยทางการแพทย์',
-        'about.contactTitle': 'ติดต่อเรา',
-        'about.namePlaceholder': 'ชื่อของคุณ',
-        'about.emailPlaceholder': 'ที่อยู่อีเมล',
-        'about.messagePlaceholder': 'ข้อความ...',
-        'about.sendBtn': 'ส่งข้อความ',
-        'about.advisorsTitle': 'คณะที่ปรึกษาทางคลินิก',
-        'about.messageSent': 'ส่งข้อความแล้ว! เราจะตอบภายใน 24 ชั่วโมง',
-        'settings.resetBtn': 'รีเซ็ตข้อมูล',
-        'settings.exportBtn': 'ส่งออก JSON',
-        'settings.importBtn': 'นำเข้า JSON',
-        'settings.resetConfirm': 'คุณแน่ใจหรือไม่ว่าต้องการลบบันทึกการนอนและไทม์ไลน์ทั้งหมดถาวร?',
-        'settings.resetDone': 'ลบฐานข้อมูลสำเร็จ',
-        'settings.exportDone': 'สร้างไฟล์สำรอง JSON แล้ว!',
-        'settings.importDone': 'นำเข้าฐานข้อมูลสำเร็จ!',
-        'settings.importInvalid': 'โครงสร้างไฟล์ไม่ถูกต้อง',
-        'settings.importError': 'เกิดข้อผิดพลาดในการอ่านไฟล์',
-        'settings.storageLimit': 'พื้นที่จัดเก็บเต็ม กรุณาส่งออกข้อมูล',
-        'footer.tagline': 'เพื่อนร่วมทางในการติดตามคุณภาพการนอนและปรับนิสัยก่อนนอน ด้วยการจำลองไบโอเมตริก',
-        'footer.navigation': 'เมนูนำทาง',
-        'footer.tracking': 'ความท้าทาย 7 วัน',
-        'footer.support': 'ช่วยเหลือ',
-        'footer.faq': 'คำถามที่พบบ่อย',
-        'footer.about': 'เกี่ยวกับเราและทีม',
-        'footer.privacy': 'นโยบายความเป็นส่วนตัว',
-        'footer.privacyLoading': 'กำลังโหลดข้อกำหนดความเป็นส่วนตัว...',
-        'footer.disclaimerTitle': 'ประกาศข้อจำกัดความรับผิดชอบ',
-        'footer.disclaimer': 'เครื่องมือนี้ไม่ทดแทนการวินิจฉัยทางการแพทย์ คะแนน AI เป็นการจำลองเพื่อส่งเสริมพฤติกรรมการตื่นนอนที่ดี',
-        'footer.copyright': '© 2026 Smart Sleeping Healthy Inc. สงวนลิขสิทธิ์',
-        'footer.madeWith': 'สร้างด้วย ♥ ในแคลิฟอร์เนีย',
-        'premium.monthlySummaryTpl': 'คะแนนเฉลี่ย 30 วัน: {avg}/100 | แนวโน้ม: {trend} คะแนน | บันทึกทั้งหมด {count} ครั้ง',
-        'premium.detailTpl': 'การวิเคราะห์จังหวะชีวิตเชิงลึก: คะแนน {score}/100 | ความชุ่มชื้น {hydration}% | ความเครียด {stress}% — รักษากิจวัตรก่อนนอนสม่ำเสมอและติดตามแนวโน้มรายสัปดาห์',
-        'faq.title': 'คำถามที่พบบ่อย',
-        'faq.q1': 'สแกนการนอนแม่นยำทางคลินิกหรือไม่?',
-        'faq.a1': 'ไม่ ซอฟต์แวร์ทำการจำลองภายในเบราว์เซอร์เท่านั้น ไม่ใช่การวินิจฉัยทางการแพทย์',
-        'faq.q2': 'ความเป็นส่วนตัวจัดการอย่างไร?',
-        'faq.a2': 'ภาพทั้งหมดประมวลผลในเบราว์เซอร์และเก็บใน LocalStorage เท่านั้น ไม่ส่งไปเซิร์ฟเวอร์',
-        'faq.q3': 'ทำความท้าทาย 7 วันอย่างไร?',
-        'faq.a3': 'เปิดหน้า 7-Day Tracking แล้วถ่ายหรืออัปโหลดภาพวันละ 1 ครั้งบนหน้านั้นเท่านั้น ภาพจาก AI Scan จะไม่ถูกบันทึกในไทม์ไลน์',
         'premium.badge': 'พรีเมียม', 'premium.title': 'อัปเกรดเป็นพรีเมียม',
         'premium.subtitle': 'ปลดล็อกฟีเจอร์วิเคราะห์การนอน AI ขั้นสูง การวิเคราะห์พรีเมียมเป็นการจำลอง ไม่ใช่การวินิจฉัยทางการแพทย์',
         'premium.perMonth': 'ต่อเดือน', 'premium.upgradeBtn': 'อัปเกรดเป็นพรีเมียม',
@@ -3367,7 +3166,32 @@
         'mood.alert': 'ตื่นตัว', 'mood.neutral': 'ปกติ', 'mood.tired': 'ง่วง',
         'risk.high': 'ความเสี่ยงสูง: ความเหนื่อยล้าจังหวะชีวิตและหมดไฟ',
         'risk.moderate': 'ความเสี่ยงปานกลาง: รูปแบบความเหนื่อยล้าจังหวะชีวิต',
-        'risk.low': 'ความเสี่ยงต่ำ: รูปแบบการนอนสมดุล'
+        'risk.low': 'ความเสี่ยงต่ำ: รูปแบบการนอนสมดุล',
+        'face.noValidFace': 'ไม่พบใบหน้าของมนุษย์ กรุณาถ่ายใหม่',
+        'face.noFace': 'ไม่พบใบหน้า กรุณาวางใบหน้าในกรอบ',
+        'face.lowConfidence': 'ความมั่นใจในการตรวจจับใบหน้าต่ำเกินไป กรุณาถ่ายใหม่',
+        'face.multipleFaces': 'พบใบหน้าหลายใบ กรุณาให้มีเฉพาะใบหน้าของคุณ',
+        'face.offCenter': 'ใบหน้าอยู่นอกกรอบแนะนำ กรุณาจัดตำแหน่งใบหน้าใหม่',
+        'face.tooDark': 'แสงน้อยเกินไป กรุณาเพิ่มแสง',
+        'face.tooBright': 'แสงสว่างมากเกินไป กรุณาลดแสงหรือย้ายออกจากแหล่งแสง',
+        'face.blurry': 'ภาพไม่ชัด กรุณาถ่ายใหม่',
+        'face.notFacing': 'กรุณาหันหน้าตรง',
+        'face.tooFar': 'กรุณาขยับเข้าใกล้กล้อง',
+        'face.validationPassed': 'ตรวจสอบใบหน้าผ่าน พร้อมถ่ายภาพ',
+        'face.validationFailed': 'ตรวจสอบใบหน้าไม่ผ่าน กรุณาปรับแล้วลองอีกครั้ง',
+        'face.modelsLoading': 'กำลังโหลดระบบตรวจจับใบหน้า...',
+        'face.modelsFailed': 'ไม่สามารถโหลดระบบตรวจจับใบหน้าได้ กรุณารีเฟรชแล้วลองใหม่',
+        'toast.storageLimit': 'พื้นที่จัดเก็บเต็ม กรุณาส่งออกข้อมูล',
+        'report.overallWellness': 'คะแนนสุขภาพโดยรวม',
+        'report.weeklyRadar': 'เรดาร์เมตริกรายสัปดาห์',
+        'report.timeline': 'ไทม์ไลน์ 7 วัน',
+        'report.riskAssessment': 'การประเมินความเสี่ยงสุขภาพ AI',
+        'report.sleepApneaRisk': 'ความเสี่ยงภาวะหยุดหายใจขณะหลับ',
+        'report.insomniaRisk': 'ความเสี่ยงการนอนไม่หลับ',
+        'report.circadianRisk': 'ความผิดปกติของจังหวะชีวิต',
+        'report.chronicFatigueRisk': 'กลุ่มอาการเหนื่อยล้าเรื้อรัง',
+        'report.wellness': 'สุขภาพ',
+        'report.faceGuide': 'กรอบแนะนำใบหน้า'
       }
     };
 
@@ -3412,10 +3236,8 @@
       if (langSelect) langSelect.value = state.lang;
 
       renderTimeline();
-      renderTrackingHistory();
       renderKnowledgeArticles();
       updatePremiumUI();
-      if (state.currentTab === 'community') renderCommunityFeed();
       if (state.currentTab === 'dashboard') updateDashboardData();
       if (state.currentTab === 'statistics') renderStatisticsPage();
       lucide.createIcons();
@@ -3483,428 +3305,9 @@
       const avg = Math.floor(scores.reduce((a, b) => a + b, 0) / scores.length);
       const trend = scores.length >= 2 ? (scores[scores.length - 1] - scores[0]) : 0;
       const trendText = trend >= 0 ? `+${trend}` : `${trend}`;
-      el.textContent = t('premium.monthlySummaryTpl', { avg, trend: trendText, count: scores.length });
-    }
-
-    /* ----------------------------------------------------
-       TRACKING DATA HELPERS (Structured v3)
-       ---------------------------------------------------- */
-    function getTrackingRecordMetrics(record) {
-      if (!record) return null;
-      if (record.metrics) return record.metrics;
-      return {
-        score: record.score,
-        energy: record.energy,
-        darkCircles: record.darkCircles,
-        skinFreshness: record.skinFreshness,
-        hydration: record.hydration,
-        stress: record.stress,
-        sleepQuality: record.sleepQuality,
-        moodKey: record.moodKey || 'neutral'
-      };
-    }
-
-    function migrateTrackingRecord(old, dayNum) {
-      if (!old) return null;
-      if (old.version >= 3) {
-        const copy = { ...old };
-        delete copy.image;
-        return copy;
-      }
-      const moodKeys = ['refreshed', 'calm', 'fatigued', 'alert', 'neutral', 'tired'];
-      let moodKey = old.moodKey || 'neutral';
-      if (old.mood && !old.moodKey) {
-        const found = moodKeys.find(k => t('mood.' + k) === old.mood || old.mood.toLowerCase().includes(k));
-        if (found) moodKey = found;
-      }
-      return {
-        version: 3,
-        day: dayNum,
-        date: old.date,
-        capturedAt: old.capturedAt || old.date + 'T08:00:00.000Z',
-        metrics: {
-          score: old.score,
-          energy: old.energy,
-          darkCircles: old.darkCircles,
-          skinFreshness: old.skinFreshness,
-          hydration: old.hydration,
-          stress: old.stress,
-          sleepQuality: old.sleepQuality,
-          moodKey: moodKey
-        },
-        faceValidation: old.faceValidation || { passed: true, confidence: 0.85 },
-        summary: old.summary || '',
-        recommendations: old.recommendations || []
-      };
-    }
-
-    function saveTrackingHistoryToStorage() {
-      try {
-        localStorage.setItem(LOCAL_STORAGE_TRACKING_HISTORY_KEY, JSON.stringify(state.trackingHistory));
-      } catch (e) {
-        showToast(t('settings.storageLimit'), 'warning');
-      }
-    }
-
-    function renderTrackingHistory() {
-      const list = document.getElementById('tracking-history-list');
-      const empty = document.getElementById('tracking-history-empty');
-      if (!list) return;
-      list.innerHTML = '';
-
-      if (!state.trackingHistory.length) {
-        if (empty) empty.classList.remove('hidden');
-        return;
-      }
-      if (empty) empty.classList.add('hidden');
-
-      state.trackingHistory.slice().reverse().forEach(entry => {
-        const days = Object.values(entry.days || {}).filter(Boolean);
-        const avgScore = days.length
-          ? Math.floor(days.reduce((a, d) => a + getTrackingRecordMetrics(d).score, 0) / days.length)
-          : 0;
-        const item = document.createElement('div');
-        item.className = 'tracking-history-item';
-        item.innerHTML = `
-          <div>
-            <p style="font-weight: 700; font-size: 0.95rem;">${entry.completedAt ? entry.completedAt.split('T')[0] : entry.id}</p>
-            <p style="font-size: 0.82rem; color: var(--text-muted);">${t('tracking.historyDays', { n: days.length })} · ${t('tracking.historyAvgScore', { n: avgScore })}</p>
-          </div>
-          <span class="badge badge-primary">${entry.weeklyReport ? t('tracking.weeklyTitle') : t('tracking.timeline')}</span>
-        `;
-        item.addEventListener('click', () => viewTrackingHistoryEntry(entry));
-        list.appendChild(item);
-      });
-    }
-
-    function viewTrackingHistoryEntry(entry) {
-      showToast(t('tracking.viewHistory', { date: entry.completedAt ? entry.completedAt.split('T')[0] : '' }));
-      if (entry.weeklyReport) {
-        renderWeeklyReportData(entry.weeklyReport);
-        document.getElementById('weekly-report-section').classList.remove('hidden');
-        document.getElementById('weekly-report-section').scrollIntoView({ behavior: 'smooth' });
-      }
-    }
-
-    function archiveCurrentTrackingCycle(weeklyReport) {
-      const days = {};
-      for (let i = 1; i <= 7; i++) {
-        if (state.trackingDays[`day${i}`]) {
-          days[`day${i}`] = state.trackingDays[`day${i}`];
-        }
-      }
-      state.trackingHistory.push({
-        id: Date.now(),
-        completedAt: new Date().toISOString(),
-        days: days,
-        weeklyReport: weeklyReport
-      });
-      saveTrackingHistoryToStorage();
-      for (let i = 1; i <= 7; i++) state.trackingDays[`day${i}`] = null;
-      saveTrackingToStorage();
-      renderTimeline();
-      renderTrackingHistory();
-    }
-
-    /* ----------------------------------------------------
-       FACE VALIDATION (Human Presence Check)
-       ---------------------------------------------------- */
-    let faceLandmarkerInstance = null;
-    let faceLandmarkerLoading = null;
-
-    async function initFaceLandmarker() {
-      if (faceLandmarkerInstance) return faceLandmarkerInstance;
-      if (faceLandmarkerLoading) return faceLandmarkerLoading;
-      faceLandmarkerLoading = (async () => {
-        try {
-          const vision = await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm');
-          const filesetResolver = await vision.FilesetResolver.forVisionTasks(
-            'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm'
-          );
-          faceLandmarkerInstance = await vision.FaceLandmarker.createFromOptions(filesetResolver, {
-            baseOptions: {
-              modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
-              delegate: 'GPU'
-            },
-            runningMode: 'IMAGE',
-            numFaces: 2,
-            outputFaceBlendshapes: false,
-            outputFacialTransformationMatrixes: false
-          });
-          return faceLandmarkerInstance;
-        } catch (gpuErr) {
-          const vision = await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm');
-          const filesetResolver = await vision.FilesetResolver.forVisionTasks(
-            'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm'
-          );
-          faceLandmarkerInstance = await vision.FaceLandmarker.createFromOptions(filesetResolver, {
-            baseOptions: {
-              modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
-              delegate: 'CPU'
-            },
-            runningMode: 'IMAGE',
-            numFaces: 2,
-            outputFaceBlendshapes: false,
-            outputFacialTransformationMatrixes: false
-          });
-          return faceLandmarkerInstance;
-        }
-      })();
-      return faceLandmarkerLoading;
-    }
-
-    function normalizeFaceCanvas(canvas) {
-      const norm = document.createElement('canvas');
-      norm.width = canvas.width;
-      norm.height = canvas.height;
-      const ctx = norm.getContext('2d');
-      ctx.drawImage(canvas, 0, 0);
-      const imageData = ctx.getImageData(0, 0, norm.width, norm.height);
-      const data = imageData.data;
-      const hist = new Array(256).fill(0);
-      for (let i = 0; i < data.length; i += 4) {
-        const gray = Math.round(data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
-        hist[gray]++;
-      }
-      let cdf = 0;
-      const cdfArr = hist.map(h => { cdf += h; return cdf; });
-      const cdfMin = cdfArr.find(v => v > 0) || 0;
-      const total = norm.width * norm.height;
-      for (let i = 0; i < data.length; i += 4) {
-        const gray = Math.round(data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
-        const eq = Math.round(((cdfArr[gray] - cdfMin) / (total - cdfMin)) * 255);
-        data[i] = data[i + 1] = data[i + 2] = eq;
-      }
-      ctx.putImageData(imageData, 0, 0);
-      return norm;
-    }
-
-    function getLandmarkBounds(landmarks, w, h) {
-      let minX = 1, minY = 1, maxX = 0, maxY = 0;
-      landmarks.forEach(p => {
-        minX = Math.min(minX, p.x);
-        minY = Math.min(minY, p.y);
-        maxX = Math.max(maxX, p.x);
-        maxY = Math.max(maxY, p.y);
-      });
-      return {
-        width: (maxX - minX) * w,
-        height: (maxY - minY) * h,
-        centerX: ((minX + maxX) / 2) * w,
-        centerY: ((minY + maxY) / 2) * h
-      };
-    }
-
-    function assessLandmarkQuality(landmarks, canvas) {
-      const w = canvas.width;
-      const h = canvas.height;
-      const bounds = getLandmarkBounds(landmarks, w, h);
-      const minDim = Math.min(w, h);
-      const faceSizeRatio = Math.max(bounds.width, bounds.height) / minDim;
-
-      if (faceSizeRatio < 0.18) return { valid: false, reason: 'faceTooSmall', confidence: 0 };
-
-      const leftEye = landmarks[33];
-      const rightEye = landmarks[263];
-      const nose = landmarks[1];
-      const chin = landmarks[152];
-      if (!leftEye || !rightEye || !nose || !chin) {
-        return { valid: false, reason: 'no_face', confidence: 0 };
-      }
-
-      const eyeMidX = (leftEye.x + rightEye.x) / 2;
-      const yaw = Math.abs(nose.x - eyeMidX) / Math.max(0.01, Math.abs(rightEye.x - leftEye.x));
-      const pitch = Math.abs(nose.y - eyeMidX) + Math.abs(chin.y - nose.y);
-      if (yaw > 0.35 || pitch > 1.2) {
-        return { valid: false, reason: 'facePoseInvalid', confidence: 0.3 };
-      }
-
-      const interEye = Math.abs(rightEye.x - leftEye.x) * w;
-      const faceW = bounds.width;
-      const ratio = interEye / Math.max(faceW, 1);
-      if (ratio < 0.18 || ratio > 0.55) {
-        return { valid: false, reason: 'no_face', confidence: 0.2 };
-      }
-
-      let confidence = Math.min(0.98, 0.55 + faceSizeRatio * 0.8 + (1 - yaw) * 0.2);
-      return { valid: true, reason: null, confidence };
-    }
-
-    function detectSpoofHeuristics(canvas, landmarks) {
-      const w = canvas.width;
-      const h = canvas.height;
-      const bounds = getLandmarkBounds(landmarks, w, h);
-      const pad = 0.08;
-      const x0 = Math.max(0, Math.floor((bounds.centerX / w - bounds.width / w / 2 - pad) * w));
-      const y0 = Math.max(0, Math.floor((bounds.centerY / h - bounds.height / h / 2 - pad) * h));
-      const x1 = Math.min(w, Math.ceil(x0 + bounds.width * (1 + pad * 2)));
-      const y1 = Math.min(h, Math.ceil(y0 + bounds.height * (1 + pad * 2)));
-      const ctx = canvas.getContext('2d');
-      const roi = ctx.getImageData(x0, y0, x1 - x0, y1 - y0);
-      const d = roi.data;
-      let sum = 0, sumSq = 0, skinPixels = 0, edgeCount = 0;
-      const len = d.length / 4;
-      for (let i = 0; i < d.length; i += 4) {
-        const r = d[i], g = d[i + 1], b = d[i + 2];
-        const gray = r * 0.299 + g * 0.587 + b * 0.114;
-        sum += gray;
-        sumSq += gray * gray;
-        if (r > 60 && g > 40 && b > 20 && r > g && r > b && Math.abs(r - g) > 10) skinPixels++;
-      }
-      const mean = sum / len;
-      const variance = sumSq / len - mean * mean;
-      const skinRatio = skinPixels / len;
-
-      for (let y = 1; y < (y1 - y0) - 1; y += 2) {
-        for (let x = 1; x < (x1 - x0) - 1; x += 2) {
-          const i = (y * (x1 - x0) + x) * 4;
-          const g = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114;
-          const iR = (y * (x1 - x0) + x + 1) * 4;
-          const gR = d[iR] * 0.299 + d[iR + 1] * 0.587 + d[iR + 2] * 0.114;
-          if (Math.abs(g - gR) > 28) edgeCount++;
-        }
-      }
-      const edgeDensity = edgeCount / len;
-      const suspicious = variance < 180 || skinRatio < 0.12 || edgeDensity > 0.35;
-      return { suspicious, variance, skinRatio };
-    }
-
-    function validateHumanFaceHeuristic(canvas) {
-      const ctx = canvas.getContext('2d');
-      const { width: w, height: h } = canvas;
-      const data = ctx.getImageData(0, 0, w, h).data;
-      let skin = 0, total = w * h;
-      for (let i = 0; i < data.length; i += 4) {
-        const r = data[i], g = data[i + 1], b = data[i + 2];
-        if (r > 80 && g > 50 && b > 30 && r > g && Math.abs(r - g) < 80) skin++;
-      }
-      const cx0 = Math.floor(w * 0.25), cx1 = Math.floor(w * 0.75);
-      const cy0 = Math.floor(h * 0.15), cy1 = Math.floor(h * 0.85);
-      let centerSkin = 0, centerTotal = 0;
-      for (let y = cy0; y < cy1; y++) {
-        for (let x = cx0; x < cx1; x++) {
-          const i = (y * w + x) * 4;
-          const r = data[i], g = data[i + 1], b = data[i + 2];
-          centerTotal++;
-          if (r > 80 && g > 50 && b > 30 && r > g) centerSkin++;
-        }
-      }
-      if (centerSkin / centerTotal < 0.08 || skin / total < 0.05) {
-        return { valid: false, reason: 'no_face' };
-      }
-      return { valid: true, confidence: 0.72, method: 'heuristic' };
-    }
-
-    async function validateHumanFace(canvas) {
-      try {
-        const landmarker = await initFaceLandmarker();
-        const normalized = normalizeFaceCanvas(canvas);
-        const result = landmarker.detect(normalized);
-
-        if (!result.faceLandmarks || result.faceLandmarks.length === 0) {
-          return { valid: false, reason: 'no_face' };
-        }
-        if (result.faceLandmarks.length > 1) {
-          return { valid: false, reason: 'multiple_faces' };
-        }
-
-        const landmarks = result.faceLandmarks[0];
-        const quality = assessLandmarkQuality(landmarks, canvas);
-        if (!quality.valid) {
-          return { valid: false, reason: quality.reason || 'no_face' };
-        }
-
-        const spoof = detectSpoofHeuristics(canvas, landmarks);
-        if (spoof.suspicious) {
-          return { valid: false, reason: 'not_real_human' };
-        }
-
-        return {
-          valid: true,
-          confidence: quality.confidence,
-          landmarkCount: landmarks.length,
-          method: 'mediapipe'
-        };
-      } catch (err) {
-        console.warn('MediaPipe face validation fallback:', err);
-        return validateHumanFaceHeuristic(canvas);
-      }
-    }
-
-    function faceErrorMessage(reason) {
-      const map = {
-        no_face: 'scan.noValidFace',
-        multiple_faces: 'scan.multipleFaces',
-        faceTooSmall: 'scan.faceTooSmall',
-        facePoseInvalid: 'scan.facePoseInvalid',
-        not_real_human: 'scan.noRealHumanFace'
-      };
-      return t(map[reason] || 'scan.noRealHumanFace');
-    }
-
-    function showFaceValidationMsg(context, type, message) {
-      const el = document.getElementById(context === 'tracking' ? 'tracking-face-validation-msg' : 'scan-face-validation-msg');
-      if (!el) return;
-      el.className = `face-validation-msg visible ${type}`;
-      el.innerHTML = `<i data-lucide="${type === 'success' ? 'check-circle' : 'alert-circle'}"></i><span>${message}</span>`;
-      lucide.createIcons();
-    }
-
-    function clearFaceValidationMsg(context) {
-      const el = document.getElementById(context === 'tracking' ? 'tracking-face-validation-msg' : 'scan-face-validation-msg');
-      if (el) {
-        el.className = 'face-validation-msg';
-        el.innerHTML = '';
-      }
-    }
-
-    async function runFaceValidationOnCanvas(canvas, context) {
-      showFaceValidationMsg(context, 'warning', t('scan.validatingFace'));
-      const result = await validateHumanFace(canvas);
-      if (!result.valid) {
-        if (context === 'tracking') {
-          state.trackingFaceValidated = false;
-          state.trackingImageBase64 = null;
-          document.getElementById('btn-tracking-analyze').disabled = true;
-        } else {
-          state.scanFaceValidated = false;
-          state.activeScanImageBase64 = null;
-          document.getElementById('btn-analyze').disabled = true;
-        }
-        showFaceValidationMsg(context, 'error', faceErrorMessage(result.reason));
-        return false;
-      }
-      if (context === 'tracking') {
-        state.trackingFaceValidated = true;
-        document.getElementById('btn-tracking-analyze').disabled = false;
-      } else {
-        state.scanFaceValidated = true;
-        document.getElementById('btn-analyze').disabled = false;
-      }
-      state.lastFaceValidation = result;
-      showFaceValidationMsg(context, 'success', t('scan.faceValidated'));
-      return result;
-    }
-
-    function showCameraPrecheckModal(context) {
-      state.pendingCameraContext = context;
-      document.getElementById('camera-precheck-modal').classList.add('active');
-      lucide.createIcons();
-    }
-
-    function closeCameraPrecheckModal() {
-      document.getElementById('camera-precheck-modal').classList.remove('active');
-      state.pendingCameraContext = null;
-    }
-
-    async function confirmOpenCamera() {
-      const context = state.pendingCameraContext;
-      closeCameraPrecheckModal();
-      if (context === 'tracking') {
-        await openTrackingCameraStream();
-      } else {
-        await openScanCameraStream();
-      }
+      el.textContent = state.lang === 'th'
+        ? `คะแนนเฉลี่ย 30 วัน: ${avg}/100 | แนวโน้ม: ${trendText} คะแนน | บันทึกทั้งหมด ${scores.length} ครั้ง`
+        : `30-day average score: ${avg}/100 | Trend: ${trendText} points | Total logs: ${scores.length}`;
     }
 
     const VALID_ROUTES = ['home', 'scan', 'dashboard', 'statistics', 'recommendations', 'tracking', 'premium', 'knowledge', 'community', 'about', 'settings'];
@@ -4000,7 +3403,8 @@
       statsLine: null,
       statsBar: null,
       statsStress: null,
-      weeklyTrend: null
+      weeklyTrend: null,
+      weeklyRadar: null
     };
 
     /* ----------------------------------------------------
@@ -4011,22 +3415,59 @@
       initLanguage();
       initPremium();
       loadStorageData();
+      initFaceDetectionModels();
       initHeroCanvas();
       renderTimeline();
-      renderTrackingHistory();
       renderKnowledgeArticles();
       renderCommunityFeed();
       setupEventListeners();
       initTrackingCapture();
-      document.getElementById('btn-camera-precheck-confirm').addEventListener('click', confirmOpenCamera);
       lucide.createIcons();
     });
 
+    function sanitizeAnalysisRecord(record) {
+      if (!record || typeof record !== 'object') return null;
+      const clean = {};
+      ANALYSIS_STORAGE_KEYS.forEach((key) => {
+        if (record[key] !== undefined && record[key] !== null) {
+          clean[key] = record[key];
+        }
+      });
+      if (!clean.date && clean.analyzedAt) {
+        clean.date = clean.analyzedAt.split('T')[0];
+      }
+      return Object.keys(clean).length ? clean : null;
+    }
+
+    function sanitizeHistoryRecords(records) {
+      if (!Array.isArray(records)) return [];
+      return records.map(sanitizeAnalysisRecord).filter(Boolean);
+    }
+
+    function sanitizeTrackingRecords(tracking) {
+      const clean = {};
+      for (let i = 1; i <= 7; i++) {
+        const key = `day${i}`;
+        clean[key] = tracking && tracking[key] ? sanitizeAnalysisRecord(tracking[key]) : null;
+      }
+      return clean;
+    }
+
+    function writeJsonToLocalStorage(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
     function loadStorageData() {
-      // Load Sleep History
+      // Load Sleep History (migrate legacy records that may contain image data)
       const storedHistory = localStorage.getItem(LOCAL_STORAGE_HISTORY_KEY);
       if (storedHistory) {
-        state.sleepHistory = JSON.parse(storedHistory);
+        state.sleepHistory = sanitizeHistoryRecords(JSON.parse(storedHistory));
+        writeJsonToLocalStorage(LOCAL_STORAGE_HISTORY_KEY, state.sleepHistory);
       } else {
         state.sleepHistory = generateSeedHistory();
         saveHistoryToStorage();
@@ -4035,26 +3476,14 @@
       // Load 7-Day Tracking state
       const storedTracking = localStorage.getItem(LOCAL_STORAGE_TRACKING_KEY);
       if (storedTracking) {
-        state.trackingDays = JSON.parse(storedTracking);
-        let migrated = false;
-        for (let i = 1; i <= 7; i++) {
-          const key = `day${i}`;
-          if (state.trackingDays[key]) {
-            const m = migrateTrackingRecord(state.trackingDays[key], i);
-            if (m !== state.trackingDays[key]) migrated = true;
-            state.trackingDays[key] = m;
-          }
-        }
-        if (migrated) saveTrackingToStorage();
+        state.trackingDays = sanitizeTrackingRecords(JSON.parse(storedTracking));
+        writeJsonToLocalStorage(LOCAL_STORAGE_TRACKING_KEY, state.trackingDays);
       } else {
         for (let i = 1; i <= 7; i++) {
           state.trackingDays[`day${i}`] = null;
         }
         saveTrackingToStorage();
       }
-
-      const storedHistoryTracking = localStorage.getItem(LOCAL_STORAGE_TRACKING_HISTORY_KEY);
-      state.trackingHistory = storedHistoryTracking ? JSON.parse(storedHistoryTracking) : [];
 
       // Load Community posts
       const storedPosts = localStorage.getItem(LOCAL_STORAGE_COMMUNITY_KEY);
@@ -4067,28 +3496,25 @@
     }
 
     function saveHistoryToStorage() {
+      state.sleepHistory = sanitizeHistoryRecords(state.sleepHistory);
       if (!state.isPremium && state.sleepHistory.length > FREE_SCAN_HISTORY_LIMIT) {
         state.sleepHistory = state.sleepHistory.slice(-FREE_SCAN_HISTORY_LIMIT);
       }
-      try {
-        localStorage.setItem(LOCAL_STORAGE_HISTORY_KEY, JSON.stringify(state.sleepHistory));
-      } catch (e) {
-        while (state.sleepHistory.length > 5) {
-          state.sleepHistory.shift();
-          try {
-            localStorage.setItem(LOCAL_STORAGE_HISTORY_KEY, JSON.stringify(state.sleepHistory));
-            break;
-          } catch (err) { /* continue trimming */ }
+      if (writeJsonToLocalStorage(LOCAL_STORAGE_HISTORY_KEY, state.sleepHistory)) return;
+      while (state.sleepHistory.length > 5) {
+        state.sleepHistory.shift();
+        if (writeJsonToLocalStorage(LOCAL_STORAGE_HISTORY_KEY, state.sleepHistory)) {
+          showToast(t('toast.storageLimit'), 'warning');
+          return;
         }
       }
+      showToast(t('toast.storageLimit'), 'warning');
     }
 
     function saveTrackingToStorage() {
-      try {
-        localStorage.setItem(LOCAL_STORAGE_TRACKING_KEY, JSON.stringify(state.trackingDays));
-      } catch (e) {
-        showToast(t('settings.storageLimit'), 'warning');
-      }
+      state.trackingDays = sanitizeTrackingRecords(state.trackingDays);
+      if (writeJsonToLocalStorage(LOCAL_STORAGE_TRACKING_KEY, state.trackingDays)) return;
+      showToast(t('toast.storageLimit'), 'warning');
     }
 
     function saveCommunityToStorage() {
@@ -4111,6 +3537,7 @@
 
       return dates.map((date, idx) => ({
         date: date,
+        analyzedAt: `${date}T08:00:00.000Z`,
         score: seedScores[idx],
         energy: seedEnergy[idx],
         darkCircles: seedCircles[idx],
@@ -4182,7 +3609,6 @@
         renderStatisticsPage();
       } else if (tabName === 'tracking') {
         renderTimeline();
-        renderTrackingHistory();
         closeTrackingCapture();
         closeTrackingDayReport();
       } else if (tabName === 'premium') {
@@ -4328,38 +3754,35 @@
         stopCamera();
         showToast(t('scan.cameraStopped'));
       } else {
-        showCameraPrecheckModal('scan');
+        showGlassesNotice(async () => {
+          try {
+            const constraints = {
+              video: {
+                facingMode: 'user',
+                width: { ideal: 1280, max: 1280 },
+                height: { ideal: 720, max: 720 },
+                frameRate: { ideal: 24, max: 30 }
+              },
+              audio: false
+            };
+            localStream = await navigator.mediaDevices.getUserMedia(constraints);
+            webcamEl.srcObject = localStream;
+            await webcamEl.play();
+            webcamEl.classList.remove('hidden');
+            photoCanvas.classList.add('hidden');
+            cameraFallback.classList.add('hidden');
+            document.getElementById('face-guide-frame').classList.remove('hidden');
+            btnCameraToggle.innerHTML = `<i data-lucide="video-off"></i><span>${t('scan.stopCamera')}</span>`;
+            btnAnalyze.disabled = false;
+            showToast(t('scan.cameraActive'));
+            lucide.createIcons();
+          } catch (err) {
+            console.error("Camera access error:", err);
+            showToast(t('scan.cameraBlocked'), "danger");
+          }
+        });
       }
     });
-
-    async function openScanCameraStream() {
-      try {
-        const constraints = {
-          video: {
-            facingMode: 'user',
-            width: { ideal: 1280, max: 1280 },
-            height: { ideal: 720, max: 720 },
-            frameRate: { ideal: 24, max: 30 }
-          },
-          audio: false
-        };
-        localStream = await navigator.mediaDevices.getUserMedia(constraints);
-        webcamEl.srcObject = localStream;
-        await webcamEl.play();
-        webcamEl.classList.remove('hidden');
-        photoCanvas.classList.add('hidden');
-        cameraFallback.classList.add('hidden');
-        btnCameraToggle.innerHTML = `<i data-lucide="video-off"></i><span>${t('scan.stopCamera')}</span>`;
-        state.scanFaceValidated = false;
-        btnAnalyze.disabled = true;
-        clearFaceValidationMsg('scan');
-        showToast(t('scan.cameraActive'));
-        lucide.createIcons();
-      } catch (err) {
-        console.error("Camera access error:", err);
-        showToast(t('scan.cameraBlocked'), "danger");
-      }
-    }
 
     function stopCamera() {
       if (localStream) {
@@ -4368,44 +3791,50 @@
       }
       webcamEl.classList.add('hidden');
       webcamEl.srcObject = null;
+      document.getElementById('face-guide-frame').classList.add('hidden');
       cameraFallback.classList.remove('hidden');
       btnCameraToggle.innerHTML = `<i data-lucide="video"></i><span>${t('scan.openCamera')}</span>`;
-      btnAnalyze.disabled = !state.scanFaceValidated;
+      btnAnalyze.disabled = (state.activeScanImageBase64 === null);
       lucide.createIcons();
     }
 
-    fileUploader.addEventListener('change', async (e) => {
+    fileUploader.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = async (event) => {
+      reader.onload = (event) => {
         const img = new Image();
         img.onload = async () => {
           stopCamera();
           const ctx = photoCanvas.getContext('2d');
-          
+
           photoCanvas.width = 640;
           photoCanvas.height = 480;
-          
+
           const hRatio = photoCanvas.width / img.width;
           const vRatio = photoCanvas.height / img.height;
           const ratio  = Math.max(hRatio, vRatio);
           const centerShift_x = (photoCanvas.width - img.width*ratio) / 2;
-          const centerShift_y = (photoCanvas.height - img.height*ratio) / 2;  
-          
+          const centerShift_y = (photoCanvas.height - img.height*ratio) / 2;
+
           ctx.clearRect(0,0,photoCanvas.width, photoCanvas.height);
           ctx.drawImage(img, 0,0, img.width, img.height,
-                             centerShift_x,centerShift_y, img.width*ratio, img.height*ratio);  
+                             centerShift_x,centerShift_y, img.width*ratio, img.height*ratio);
+
+          const validation = await validateFaceCanvas(photoCanvas);
+          if (!validation.passed) {
+            showFaceValidationErrors(validation.errors);
+            fileUploader.value = '';
+            return;
+          }
 
           photoCanvas.classList.remove('hidden');
           cameraFallback.classList.add('hidden');
-          
+
           state.activeScanImageBase64 = compressCanvasToDataURL(photoCanvas, state.isPremium);
-          state.scanFaceValidated = false;
-          btnAnalyze.disabled = true;
+          btnAnalyze.disabled = false;
           showToast(t('scan.uploaded'));
-          await runFaceValidationOnCanvas(photoCanvas, 'scan');
         };
         img.src = event.target.result;
       };
@@ -4438,28 +3867,43 @@
     }
 
     btnAnalyze.addEventListener('click', async () => {
-      if (localStream) {
-        const ctx = photoCanvas.getContext('2d');
-        photoCanvas.width = webcamEl.videoWidth || 640;
-        photoCanvas.height = webcamEl.videoHeight || 480;
-        ctx.drawImage(webcamEl, 0, 0, photoCanvas.width, photoCanvas.height);
-        if (state.isPremium) enhanceCanvasForPremium(photoCanvas);
-        state.activeScanImageBase64 = compressCanvasToDataURL(photoCanvas, state.isPremium);
-        
-        photoCanvas.classList.remove('hidden');
-        webcamEl.classList.add('hidden');
-        stopCamera();
+      try {
+        if (localStream) {
+          await waitForVideoReady(webcamEl);
+          const ctx = photoCanvas.getContext('2d');
+          photoCanvas.width = webcamEl.videoWidth;
+          photoCanvas.height = webcamEl.videoHeight;
+          ctx.drawImage(webcamEl, 0, 0, photoCanvas.width, photoCanvas.height);
+          if (state.isPremium) enhanceCanvasForPremium(photoCanvas);
+          state.activeScanImageBase64 = compressCanvasToDataURL(photoCanvas, state.isPremium);
 
-        const faceResult = await runFaceValidationOnCanvas(photoCanvas, 'scan');
-        if (!faceResult) return;
+          photoCanvas.classList.remove('hidden');
+          webcamEl.classList.add('hidden');
+          stopCamera();
+        } else if (photoCanvas.width > 0 && photoCanvas.height > 0) {
+          state.activeScanImageBase64 = compressCanvasToDataURL(photoCanvas, state.isPremium);
+        }
+
+        if (!photoCanvas.width || !photoCanvas.height) return;
+
+        btnAnalyze.disabled = true;
+        const validation = await validateFaceCanvas(photoCanvas);
+        btnAnalyze.disabled = false;
+        if (!validation.passed) {
+          showFaceValidationErrors(validation.errors);
+          state.activeScanImageBase64 = null;
+          btnAnalyze.disabled = true;
+          photoCanvas.classList.add('hidden');
+          cameraFallback.classList.remove('hidden');
+          return;
+        }
+
+        runBiometricSimulationScan('scan');
+      } catch (err) {
+        btnAnalyze.disabled = false;
+        console.error('[FaceValidation] Capture failed:', err);
+        showToast(err.message === 'Video not ready' ? t('scan.cameraBlocked') : t('face.modelsFailed'), 'danger');
       }
-
-      if (!state.scanFaceValidated) {
-        showFaceValidationMsg('scan', 'error', t('scan.noRealHumanFace'));
-        return;
-      }
-
-      runBiometricSimulationScan('scan');
     });
 
     function runBiometricSimulationScan(context = 'scan') {
@@ -4512,50 +3956,74 @@
       const sleepQuality = Math.min(100, Math.max(0, sleepScore + Math.floor(Math.random() * 8) - 4));
 
       const moodKeys = ['refreshed', 'calm', 'fatigued', 'alert', 'neutral', 'tired'];
-      const moodKey = moodKeys[Math.floor(Math.random() * moodKeys.length)];
-      const mood = t('mood.' + moodKey);
+      const mood = t('mood.' + moodKeys[Math.floor(Math.random() * moodKeys.length)]);
 
-      const recKeys = ['rec.water', 'rec.bedtime', 'rec.screen', 'rec.exercise', 'rec.meditation'];
-      const shuffledRecKeys = [...recKeys].sort(() => 0.5 - Math.random());
-      const selectedRecKeys = shuffledRecKeys.slice(0, 3);
-      const selectedRecs = selectedRecKeys.map(k => t(k));
+      const recsPoolEn = [
+        "Drink 500ml of water immediately to restore skin moisture.",
+        "Sleep before 11 PM tonight to capture prime delta-wave windows.",
+        "Reduce screen time at least 60 minutes before closing your eyes.",
+        "Exercise 30 minutes today before 6 PM to boost melatonin.",
+        "Perform a 10-minute wind-down meditation to decrease heart rate."
+      ];
+      const recsPoolTh = [
+        "ดื่มน้ำ 500 มล. ทันทีเพื่อฟื้นความชุ่มชื้นผิว",
+        "เข้านอนก่อน 23:00 น. เพื่อจับช่วงคลื่นเดลต้าที่ดีที่สุด",
+        "ลดเวลาหน้าจอก่อนปิดตาอย่างน้อย 60 นาที",
+        "ออกกำลังกาย 30 นาทีก่อน 18:00 น. เพื่อกระตุ้นเมลาโทนิน",
+        "ทำสมาธิผ่อนคลาย 10 นาทีเพื่อลดอัตราการเต้นหัวใจ"
+      ];
+      const recsPool = state.lang === 'th' ? recsPoolTh : recsPoolEn;
+      
+      const selectedRecs = [];
+      const shuffled = recsPool.sort(() => 0.5 - Math.random());
+      for (let i = 0; i < 3; i++) {
+        selectedRecs.push(shuffled[i]);
+      }
 
-      let summaryKey = 'summary.poor';
-      if (sleepScore >= 85) summaryKey = 'summary.optimal';
-      else if (sleepScore >= 70) summaryKey = 'summary.moderate';
-      const summaryText = t(summaryKey);
+      let summaryText = "";
+      if (sleepScore >= 85) {
+        summaryText = state.lang === 'th'
+          ? "สรุปการนอน: ไบโอเมตริกใบหน้าสะท้อนการฟื้นตัวที่ดี ขอบตาคล้ำต่ำและความตึงเครียดน้อย ระดับความชุ่มชื้นสูง"
+          : "Sleep Summary: Your facial biometrics reflect optimal recovery. Dark circle contrast is low and micro-expression strain is minimal. Cellular hydration levels are high.";
+      } else if (sleepScore >= 70) {
+        summaryText = state.lang === 'th'
+          ? "สรุปการนอน: พบตัวชี้วัดความเหนื่อยล้าปานกลาง ตรวจพบความตึงรอบตาเล็กน้อยและการสะท้อนแสงผิวลดลง"
+          : "Sleep Summary: Moderate fatigue markers are visible. We detected mild orbital tension and decreased dermal reflection, typical of partial circadian lag.";
+      } else {
+        summaryText = state.lang === 'th'
+          ? "สรุปการนอน: ไบโอเมตริกแสดงความเหนื่อยล้าชัดเจน เงาใต้ตาลึกขึ้นและกล้ามเนื้อใบหน้าตึง บ่งชี้หนี้การนอนสูง"
+          : "Sleep Summary: Biometrics show notable fatigue. Increased orbital shadow depth and facial muscle contraction indicate a significant sleep debt.";
+      }
 
-      const imageSource = context === 'tracking' ? null : state.activeScanImageBase64;
-
-      const metrics = {
+      const newScan = {
+        analyzedAt: new Date().toISOString(),
+        date: new Date().toISOString().split('T')[0],
         score: sleepScore,
         energy: Math.min(100, energy),
         darkCircles: Math.min(100, Math.max(0, darkCircles)),
         skinFreshness: skinFreshness,
         stress: stressVal,
         hydration: hydration,
-        sleepQuality: sleepQuality,
-        moodKey: moodKey
-      };
-
-      const newScan = {
-        date: new Date().toISOString().split('T')[0],
-        score: sleepScore,
-        energy: metrics.energy,
-        darkCircles: metrics.darkCircles,
-        skinFreshness: skinFreshness,
-        stress: stressVal,
-        hydration: hydration,
         mood: mood,
-        moodKey: moodKey,
         sleepQuality: sleepQuality,
         recommendations: selectedRecs,
-        recommendationKeys: selectedRecKeys,
         summary: summaryText,
-        summaryKey: summaryKey,
-        image: imageSource,
         premiumDetail: state.isPremium ? generatePremiumDetail(sleepScore, hydration, stressVal) : null
       };
+
+      // Discard the original image immediately after extracting analysis results
+      if (context === 'tracking') {
+        state.trackingImageBase64 = null;
+      } else {
+        state.activeScanImageBase64 = null;
+      }
+      const trackingCanvas = document.getElementById('tracking-photo-canvas');
+      if (context === 'tracking' && trackingCanvas) {
+        trackingCanvas.classList.add('hidden');
+      } else if (photoCanvas) {
+        photoCanvas.classList.add('hidden');
+        if (cameraFallback) cameraFallback.classList.remove('hidden');
+      }
 
       if (context === 'tracking') {
         const dayNum = state.trackingActiveDay;
@@ -4563,25 +4031,11 @@
           showToast(t('tracking.dayExists', { n: dayNum }), 'warning');
           return;
         }
-        const structuredRecord = {
-          version: 3,
-          day: dayNum,
-          date: new Date().toISOString().split('T')[0],
-          capturedAt: new Date().toISOString(),
-          metrics: metrics,
-          faceValidation: state.lastFaceValidation || { passed: true, confidence: 0.85 },
-          summary: summaryText,
-          summaryKey: summaryKey,
-          recommendations: selectedRecs,
-          recommendationKeys: selectedRecKeys
-        };
-        state.trackingDays[`day${dayNum}`] = structuredRecord;
-        state.trackingImageBase64 = null;
-        state.trackingFaceValidated = false;
+        state.trackingDays[`day${dayNum}`] = newScan;
         saveTrackingToStorage();
         renderTimeline();
         closeTrackingCapture();
-        showTrackingDayReport(dayNum, structuredRecord);
+        showTrackingDayReport(dayNum, newScan);
         showToast(t('tracking.dayLogged', { n: dayNum }), 'success');
         return;
       }
@@ -4598,7 +4052,10 @@
     }
 
     function generatePremiumDetail(score, hydration, stress) {
-      return t('premium.detailTpl', { score, hydration, stress });
+      if (state.lang === 'th') {
+        return `การวิเคราะห์จังหวะชีวิตเชิงลึก: คะแนน ${score}/100 | ความชุ่มชื้น ${hydration}% | ความเครียด ${stress}% — แนะนำรักษากิจวัตรก่อนนอนสม่ำเสมอและติดตามแนวโน้มรายสัปดาห์`;
+      }
+      return `Deep circadian analysis: Score ${score}/100 | Hydration ${hydration}% | Stress ${stress}% — Maintain consistent bedtime routines and monitor weekly trends for optimal recovery.`;
     }
 
     function displayScanReport(report) {
@@ -4644,13 +4101,12 @@
       document.getElementById('scan-gauge-fill').style.strokeDashoffset = gaugeOffset;
 
       // Summary text
-      document.getElementById('report-summary-text').textContent = report.summaryKey ? t(report.summaryKey) : report.summary;
+      document.getElementById('report-summary-text').textContent = report.summary;
 
       // Recommendations list
       const recList = document.getElementById('report-recs-list');
       recList.innerHTML = '';
-      const recs = report.recommendationKeys ? report.recommendationKeys.map(k => t(k)) : report.recommendations;
-      recs.forEach(rec => {
+      report.recommendations.forEach(rec => {
         const li = document.createElement('li');
         li.innerHTML = `<i data-lucide="check" style="color: var(--primary); width: 1.1rem; flex-shrink:0;"></i> ${rec}`;
         recList.appendChild(li);
@@ -4730,8 +4186,7 @@
         let previewHTML = `<i data-lucide="plus" style="width: 1.25rem; height: 1.25rem;"></i>`;
         if (dayData) {
           dayCard.classList.add('completed');
-          const m = getTrackingRecordMetrics(dayData);
-          previewHTML = `<span class="day-preview-score">${m.score}</span>`;
+          previewHTML = `<div style="font-size:1.5rem;font-weight:800;color:var(--primary);">${dayData.score}</div>`;
           completeCount++;
         }
 
@@ -4816,30 +4271,25 @@
       const body = document.getElementById('tracking-day-report-body');
       if (!container || !body) return;
 
-      const m = getTrackingRecordMetrics(report);
-      const summary = report.summaryKey ? t(report.summaryKey) : report.summary;
-      const moodLabel = t('mood.' + (m.moodKey || 'neutral'));
-
       if (title) title.textContent = t('tracking.dayReport', { n: dayNumber });
       body.innerHTML = `
         <div style="display:flex; gap:1.25rem; flex-wrap:wrap; align-items:flex-start;">
-          <div style="width:6rem;height:6rem;border-radius:0.75rem;border:1px solid var(--glass-border);display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(16,185,129,0.08);">
-            <span style="font-size:1.75rem;font-weight:800;color:var(--primary);">${m.score}</span>
-            <span style="font-size:0.7rem;color:var(--text-muted);">${t('scan.points')}</span>
+          <div style="width:6rem;height:6rem;border-radius:0.75rem;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;border:1px solid var(--glass-border);">
+            <div style="text-align:center;">
+              <p style="font-size:2rem;font-weight:800;color:white;margin:0;">${report.score}</p>
+              <p style="font-size:0.65rem;color:rgba(255,255,255,0.9);margin:0;">SCORE</p>
+            </div>
           </div>
           <div style="flex:1; min-width:12rem;">
-            <p style="font-size:0.88rem;color:var(--text-muted);margin-bottom:0.25rem;">${report.date || ''}</p>
-            <p style="font-size:0.85rem;color:var(--primary);margin-bottom:0.5rem;font-weight:600;">${moodLabel}</p>
-            <p style="font-size:0.9rem;line-height:1.5;">${summary}</p>
+            <p style="font-size:2rem;font-weight:800;color:var(--primary);">${report.score}<span style="font-size:0.9rem;color:var(--text-muted);"> /100</span></p>
+            <p style="font-size:0.88rem;color:var(--text-muted);margin-bottom:0.5rem;">${report.date}</p>
+            <p style="font-size:0.9rem;line-height:1.5;">${report.summary}</p>
           </div>
         </div>
         <div class="metrics-grid" style="margin-top:1rem;grid-template-columns:repeat(auto-fit,minmax(8rem,1fr));">
-          <div class="metric-card"><span style="font-size:0.8rem;">${t('scan.energy')}</span><strong>${m.energy}%</strong></div>
-          <div class="metric-card"><span style="font-size:0.8rem;">${t('scan.hydration')}</span><strong>${m.hydration}%</strong></div>
-          <div class="metric-card"><span style="font-size:0.8rem;">${t('scan.stress')}</span><strong>${m.stress}%</strong></div>
-          <div class="metric-card"><span style="font-size:0.8rem;">${t('scan.darkCircles')}</span><strong>${m.darkCircles}%</strong></div>
-          <div class="metric-card"><span style="font-size:0.8rem;">${t('scan.skinFreshness')}</span><strong>${m.skinFreshness}%</strong></div>
-          <div class="metric-card"><span style="font-size:0.8rem;">${t('scan.sleepGauge')}</span><strong>${m.sleepQuality}%</strong></div>
+          <div class="metric-card"><span style="font-size:0.8rem;">${t('scan.energy')}</span><strong>${report.energy}%</strong></div>
+          <div class="metric-card"><span style="font-size:0.8rem;">${t('scan.hydration')}</span><strong>${report.hydration}%</strong></div>
+          <div class="metric-card"><span style="font-size:0.8rem;">${t('scan.stress')}</span><strong>${report.stress}%</strong></div>
         </div>
       `;
       container.classList.remove('hidden');
@@ -4861,7 +4311,27 @@
           stopTrackingCamera();
           showToast(t('scan.cameraStopped'));
         } else {
-          showCameraPrecheckModal('tracking');
+          showGlassesNotice(async () => {
+            try {
+              const constraints = {
+                video: { facingMode: 'user', width: { ideal: 1280, max: 1280 }, height: { ideal: 720, max: 720 }, frameRate: { ideal: 24, max: 30 } },
+                audio: false
+              };
+              state.trackingStream = await navigator.mediaDevices.getUserMedia(constraints);
+              webcam.srcObject = state.trackingStream;
+              await webcam.play();
+              webcam.classList.remove('hidden');
+              canvas.classList.add('hidden');
+              fallback.classList.add('hidden');
+              document.getElementById('tracking-face-guide-frame').classList.remove('hidden');
+              btnCam.innerHTML = `<i data-lucide="video-off"></i><span>${t('scan.stopCamera')}</span>`;
+              btnAnalyze.disabled = false;
+              showToast(t('scan.cameraActive'));
+              lucide.createIcons();
+            } catch (err) {
+              showToast(t('scan.cameraBlocked'), 'danger');
+            }
+          });
         }
       });
 
@@ -4870,7 +4340,7 @@
           const file = e.target.files[0];
           if (!file) return;
           const reader = new FileReader();
-          reader.onload = async (event) => {
+          reader.onload = (event) => {
             const img = new Image();
             img.onload = async () => {
               stopTrackingCamera();
@@ -4884,14 +4354,20 @@
               const cy = (canvas.height - img.height * ratio) / 2;
               ctx.clearRect(0, 0, canvas.width, canvas.height);
               ctx.drawImage(img, cx, cy, img.width * ratio, img.height * ratio);
+
+              const validation = await validateFaceCanvas(canvas);
+              if (!validation.passed) {
+                showFaceValidationErrors(validation.errors);
+                fileInput.value = '';
+                return;
+              }
+
               if (state.isPremium) enhanceCanvasForPremium(canvas);
               canvas.classList.remove('hidden');
               fallback.classList.add('hidden');
               state.trackingImageBase64 = compressCanvasToDataURL(canvas, state.isPremium);
-              state.trackingFaceValidated = false;
-              btnAnalyze.disabled = true;
+              btnAnalyze.disabled = false;
               showToast(t('scan.uploaded'));
-              await runFaceValidationOnCanvas(canvas, 'tracking');
             };
             img.src = event.target.result;
           };
@@ -4905,53 +4381,44 @@
           showToast(t('tracking.dayExists', { n: state.trackingActiveDay }), 'warning');
           return;
         }
-        if (state.trackingStream) {
-          const ctx = canvas.getContext('2d');
-          canvas.width = webcam.videoWidth || 640;
-          canvas.height = webcam.videoHeight || 480;
-          ctx.drawImage(webcam, 0, 0, canvas.width, canvas.height);
-          if (state.isPremium) enhanceCanvasForPremium(canvas);
-          state.trackingImageBase64 = compressCanvasToDataURL(canvas, state.isPremium);
-          canvas.classList.remove('hidden');
-          webcam.classList.add('hidden');
-          stopTrackingCamera();
-          const faceResult = await runFaceValidationOnCanvas(canvas, 'tracking');
-          if (!faceResult) return;
-        }
-        if (!state.trackingFaceValidated) {
-          showFaceValidationMsg('tracking', 'error', t('scan.noRealHumanFace'));
-          return;
-        }
-        runBiometricSimulationScan('tracking');
-      });
-    }
 
-    async function openTrackingCameraStream() {
-      const btnCam = document.getElementById('btn-tracking-camera-toggle');
-      const btnAnalyze = document.getElementById('btn-tracking-analyze');
-      const webcam = document.getElementById('tracking-webcam');
-      const canvas = document.getElementById('tracking-photo-canvas');
-      const fallback = document.getElementById('tracking-camera-fallback');
-      try {
-        const constraints = {
-          video: { facingMode: 'user', width: { ideal: 1280, max: 1280 }, height: { ideal: 720, max: 720 }, frameRate: { ideal: 24, max: 30 } },
-          audio: false
-        };
-        state.trackingStream = await navigator.mediaDevices.getUserMedia(constraints);
-        webcam.srcObject = state.trackingStream;
-        await webcam.play();
-        webcam.classList.remove('hidden');
-        canvas.classList.add('hidden');
-        fallback.classList.add('hidden');
-        btnCam.innerHTML = `<i data-lucide="video-off"></i><span>${t('scan.stopCamera')}</span>`;
-        state.trackingFaceValidated = false;
-        btnAnalyze.disabled = true;
-        clearFaceValidationMsg('tracking');
-        showToast(t('scan.cameraActive'));
-        lucide.createIcons();
-      } catch (err) {
-        showToast(t('scan.cameraBlocked'), 'danger');
-      }
+        try {
+          if (state.trackingStream) {
+            await waitForVideoReady(webcam);
+            const ctx = canvas.getContext('2d');
+            canvas.width = webcam.videoWidth;
+            canvas.height = webcam.videoHeight;
+            ctx.drawImage(webcam, 0, 0, canvas.width, canvas.height);
+            if (state.isPremium) enhanceCanvasForPremium(canvas);
+            state.trackingImageBase64 = compressCanvasToDataURL(canvas, state.isPremium);
+            canvas.classList.remove('hidden');
+            webcam.classList.add('hidden');
+            stopTrackingCamera();
+          } else if (canvas.width > 0 && canvas.height > 0) {
+            state.trackingImageBase64 = compressCanvasToDataURL(canvas, state.isPremium);
+          }
+
+          if (!canvas.width || !canvas.height) return;
+
+          btnAnalyze.disabled = true;
+          const validation = await validateFaceCanvas(canvas);
+          btnAnalyze.disabled = false;
+          if (!validation.passed) {
+            showFaceValidationErrors(validation.errors);
+            state.trackingImageBase64 = null;
+            btnAnalyze.disabled = true;
+            canvas.classList.add('hidden');
+            if (fallback) fallback.classList.remove('hidden');
+            return;
+          }
+
+          runBiometricSimulationScan('tracking');
+        } catch (err) {
+          btnAnalyze.disabled = false;
+          console.error('[FaceValidation] Tracking capture failed:', err);
+          showToast(err.message === 'Video not ready' ? t('scan.cameraBlocked') : t('face.modelsFailed'), 'danger');
+        }
+      });
     }
 
     function stopTrackingCamera() {
@@ -4968,15 +4435,14 @@
         webcam.srcObject = null;
       }
       if (fallback) fallback.classList.remove('hidden');
+      document.getElementById('tracking-face-guide-frame').classList.add('hidden');
       if (btnCam) btnCam.innerHTML = `<i data-lucide="video"></i><span>${t('scan.openCamera')}</span>`;
-      if (btnAnalyze) btnAnalyze.disabled = !state.trackingFaceValidated;
+      if (btnAnalyze) btnAnalyze.disabled = (state.trackingImageBase64 === null);
       lucide.createIcons();
     }
 
     function resetTrackingCameraUI() {
       stopTrackingCamera();
-      state.trackingFaceValidated = false;
-      clearFaceValidationMsg('tracking');
       const canvas = document.getElementById('tracking-photo-canvas');
       const fileInput = document.getElementById('tracking-file-uploader');
       if (canvas) canvas.classList.add('hidden');
@@ -4993,61 +4459,49 @@
     }
 
     function generateWeeklyReport() {
-      const days = [1, 2, 3, 4, 5, 6, 7].map(i => state.trackingDays[`day${i}`]).filter(Boolean);
-      if (days.length < 7) return;
+      const days = [1,2,3,4,5,6,7].map(i => state.trackingDays[`day${i}`]);
+      const avgScore = Math.floor(days.reduce((acc, d) => acc + d.score, 0) / 7);
+      
+      const avgFatigue = Math.floor(days.reduce((acc, d) => acc + d.darkCircles, 0) / 7);
+      const avgStress = Math.floor(days.reduce((acc, d) => acc + d.stress, 0) / 7);
+      const avgHydration = Math.floor(days.reduce((acc, d) => acc + d.hydration, 0) / 7);
+      const avgSkinFreshness = Math.floor(days.reduce((acc, d) => acc + d.skinFreshness, 0) / 7);
+      const avgEnergy = Math.floor(days.reduce((acc, d) => acc + d.energy, 0) / 7);
+      const avgSleepQuality = Math.floor(days.reduce((acc, d) => acc + d.sleepQuality, 0) / 7);
 
-      const metrics = days.map(d => getTrackingRecordMetrics(d));
-      const avgScore = Math.floor(metrics.reduce((acc, m) => acc + m.score, 0) / 7);
-      const avgFatigue = Math.floor(metrics.reduce((acc, m) => acc + m.darkCircles, 0) / 7);
-      const avgStress = Math.floor(metrics.reduce((acc, m) => acc + m.stress, 0) / 7);
-      const burnout = Math.floor((avgFatigue + avgStress) / 2);
-      const rhythmErr = Math.floor(Math.max(...metrics.map(m => m.score)) - Math.min(...metrics.map(m => m.score)));
-      const summaryKey = burnout > 60 ? 'tracking.summaryHigh' : 'tracking.summaryLow';
-
-      const reportData = {
-        avgScore,
-        avgFatigue,
-        avgStress,
-        burnout,
-        rhythmErr,
-        summaryKey,
-        scores: metrics.map(m => m.score),
-        riskLevel: burnout > 65 ? 'high' : burnout > 40 ? 'moderate' : 'low'
-      };
-
-      renderWeeklyReportData(reportData);
-      if (Object.values(state.trackingDays).some(Boolean)) {
-        archiveCurrentTrackingCycle(reportData);
-      }
-      showToast(t('tracking.weeklyGenerated'));
-      document.getElementById('weekly-report-section').scrollIntoView({ behavior: 'smooth' });
-    }
-
-    function renderWeeklyReportData(reportData) {
       document.getElementById('weekly-report-section').classList.remove('hidden');
 
-      document.getElementById('weekly-risk-fatigue').textContent = `${reportData.avgFatigue}%`;
-      document.getElementById('weekly-risk-fatigue-bar').style.width = `${reportData.avgFatigue}%`;
+      document.getElementById('weekly-risk-fatigue').textContent = `${avgFatigue}%`;
+      document.getElementById('weekly-risk-fatigue-bar').style.width = `${avgFatigue}%`;
 
-      document.getElementById('weekly-risk-stress').textContent = `${reportData.avgStress}%`;
-      document.getElementById('weekly-risk-stress-bar').style.width = `${reportData.avgStress}%`;
+      document.getElementById('weekly-risk-stress').textContent = `${avgStress}%`;
+      document.getElementById('weekly-risk-stress-bar').style.width = `${avgStress}%`;
 
-      document.getElementById('weekly-risk-burnout').textContent = `${reportData.burnout}%`;
-      document.getElementById('weekly-risk-burnout-bar').style.width = `${reportData.burnout}%`;
+      const burnout = Math.floor((avgFatigue + avgStress) / 2);
+      document.getElementById('weekly-risk-burnout').textContent = `${burnout}%`;
+      document.getElementById('weekly-risk-burnout-bar').style.width = `${burnout}%`;
 
-      document.getElementById('weekly-risk-pattern').textContent = `${reportData.rhythmErr}%`;
-      document.getElementById('weekly-risk-pattern-bar').style.width = `${reportData.rhythmErr}%`;
+      const rhythmErr = Math.floor(Math.max(...days.map(d=>d.score)) - Math.min(...days.map(d=>d.score)));
+      document.getElementById('weekly-risk-pattern').textContent = `${rhythmErr}%`;
+      document.getElementById('weekly-risk-pattern-bar').style.width = `${rhythmErr}%`;
 
-      document.getElementById('weekly-risk-gauge-val').textContent = `${reportData.burnout}%`;
-      const gOffset = 110 - (110 * reportData.burnout) / 100;
+      // SVG semi-circle Gauge update
+      document.getElementById('weekly-risk-gauge-val').textContent = `${burnout}%`;
+      const gOffset = 110 - (110 * burnout) / 100;
       document.getElementById('weekly-risk-gauge-fill').style.strokeDashoffset = gOffset;
+
+      // Overall Wellness Score Circular Progress
+      const wellnessScore = Math.floor((avgScore + avgHydration + avgSkinFreshness + avgEnergy + (100 - avgStress)) / 5);
+      document.getElementById('weekly-wellness-score').textContent = wellnessScore;
+      const wOffset = 377 - (377 * wellnessScore) / 100;
+      document.getElementById('weekly-wellness-circle').style.strokeDashoffset = wOffset;
 
       const riskBadge = document.getElementById('weekly-risk-badge');
       riskBadge.className = 'badge';
-      if (reportData.riskLevel === 'high') {
+      if (burnout > 65) {
         riskBadge.classList.add('badge-danger');
         riskBadge.textContent = t('risk.high');
-      } else if (reportData.riskLevel === 'moderate') {
+      } else if (burnout > 40) {
         riskBadge.classList.add('badge-warning');
         riskBadge.textContent = t('risk.moderate');
       } else {
@@ -5055,18 +4509,52 @@
         riskBadge.textContent = t('risk.low');
       }
 
-      document.getElementById('weekly-risk-summary').textContent = t(reportData.summaryKey, { score: reportData.avgScore });
+      let riskSummary = "";
+      if (burnout > 60) {
+        riskSummary = state.lang === 'th'
+          ? `คะแนนเฉลี่ย 7 วัน ${avgScore}/100 ไบโอเมตริกแสดงความเหนื่อยล้าชัดเจน แนะนำปรึกษาผู้เชี่ยวชาญหากอาการคงอยู่`
+          : `Your 7-day average score was ${avgScore}/100. Biometrics show significant fatigue patterns. Elevated dark circles and stress lines match signs of potential Burnout, Cardiovascular strain awareness, or Sleep Apnea patterns. Clinical evaluation is recommended if these indicators persist.`;
+      } else {
+        riskSummary = state.lang === 'th'
+          ? `คะแนนเฉลี่ย 7 วัน ${avgScore}/100 โปรไฟล์ไบโอเมตริกแสดงความเสี่ยงต่ำถึงปานกลาง ความสม่ำเสมอการนอนยังคงดี`
+          : `Your 7-day average score was ${avgScore}/100. Biometric profiles indicate low-to-moderate fatigue risk. Sleep consistency remains stable, but maintaining hydration and scheduled curfews is key.`;
+      }
+      document.getElementById('weekly-risk-summary').textContent = riskSummary;
 
       const recsUl = document.getElementById('weekly-risk-recs');
       recsUl.innerHTML = '';
-      ['tracking.intervention1', 'tracking.intervention2', 'tracking.intervention3', 'tracking.intervention4'].forEach(key => {
+      const interventions = state.lang === 'th' ? [
+        "จำกัดแสงฟ้าก่อนนอน 1.5 ชั่วโมง",
+        "ออกกำลังกาย 30 นาทีก่อน 18:00 น.",
+        "ดื่มน้ำอย่างน้อย 2.8 ลิตรต่อวัน",
+        "นัดตรวจสุขภาพหากเหนื่อยล้าตอนเช้าต่อเนื่อง"
+      ] : [
+        "Restrict blue light stimulation exactly 1.5 hours prior to bedtime.",
+        "Exercise 30 minutes daily before 6 PM.",
+        "Sustain hydration at a baseline of 2.8L daily.",
+        "Schedule a medical check-up if chronic morning fatigue continues."
+      ];
+      interventions.forEach(item => {
         const li = document.createElement('li');
-        li.innerHTML = `<i data-lucide="check-circle" style="color: var(--primary); width: 1.1rem; display: inline-block; vertical-align: middle; margin-right: 0.25rem;"></i> ${t(key)}`;
+        li.innerHTML = `<i data-lucide="check-circle" style="color: var(--primary); width: 1.1rem; display: inline-block; vertical-align: middle; margin-right: 0.25rem;"></i> ${item}`;
         recsUl.appendChild(li);
       });
       lucide.createIcons();
 
-      renderWeeklyTrendGraph(reportData.scores);
+      // Render line trend graph inside report
+      renderWeeklyTrendGraph(days.map(d => d.score));
+
+      // Render radar chart for weekly metrics
+      renderWeeklyRadarChart(days);
+
+      // Render timeline visualization
+      renderWeeklyTimeline(days);
+
+      // Render AI wellness risk assessment
+      renderWeeklyRiskAssessment(avgScore, avgFatigue, avgStress, avgHydration);
+
+      showToast(t('tracking.weeklyGenerated'));
+      document.getElementById('weekly-report-section').scrollIntoView({ behavior: 'smooth' });
     }
 
     function renderWeeklyTrendGraph(scores) {
@@ -5098,6 +4586,90 @@
             y: { ticks: { color: labelColor, size: 9 }, min: 50, max: 100 }
           }
         }
+      });
+    }
+
+    function renderWeeklyRadarChart(days) {
+      const ctx = document.getElementById('weeklyRadarChart').getContext('2d');
+      if (charts.weeklyRadar) charts.weeklyRadar.destroy();
+
+      const isDark = state.theme === 'dark';
+      const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+      const labelColor = isDark ? '#94a3b8' : '#64748b';
+
+      const avgSleepQuality = Math.floor(days.reduce((acc, d) => acc + d.sleepQuality, 0) / 7);
+      const avgHydration = Math.floor(days.reduce((acc, d) => acc + d.hydration, 0) / 7);
+      const avgSkinFreshness = Math.floor(days.reduce((acc, d) => acc + d.skinFreshness, 0) / 7);
+      const avgEnergy = Math.floor(days.reduce((acc, d) => acc + d.energy, 0) / 7);
+      const avgStressResistance = Math.floor(days.reduce((acc, d) => acc + (100 - d.stress), 0) / 7);
+
+      charts.weeklyRadar = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: [t('chart.sleepQuality'), t('chart.hydration'), t('chart.skinOxygen'), t('chart.restfulness'), t('chart.stressResistance')],
+          datasets: [{
+            data: [avgSleepQuality, avgHydration, avgSkinFreshness, avgEnergy, avgStressResistance],
+            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+            borderColor: 'rgba(16, 185, 129, 0.8)',
+            pointBackgroundColor: 'rgba(14, 165, 233, 1)',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            r: {
+              grid: { color: gridColor },
+              angleLines: { color: gridColor },
+              pointLabels: { color: labelColor, font: { family: 'Inter', size: 8 } },
+              ticks: { display: false },
+              min: 0,
+              max: 100
+            }
+          }
+        }
+      });
+    }
+
+    function renderWeeklyTimeline(days) {
+      const container = document.getElementById('weekly-timeline');
+      if (!container) return;
+      container.innerHTML = '';
+
+      days.forEach((day, index) => {
+        const div = document.createElement('div');
+        div.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;gap:0.25rem;';
+        const scoreColor = day.score >= 85 ? 'var(--primary)' : day.score >= 70 ? 'var(--secondary)' : 'var(--danger)';
+        div.innerHTML = `
+          <div style="width:100%;height:60px;background:${scoreColor};border-radius:0.25rem;opacity:${day.score / 100};"></div>
+          <span style="font-size:0.65rem;font-weight:600;color:var(--text-muted);">D${index + 1}</span>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderWeeklyRiskAssessment(avgScore, avgFatigue, avgStress, avgHydration) {
+      const container = document.getElementById('weekly-risk-assessment');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const risks = [
+        { label: t('report.sleepApneaRisk'), value: Math.floor(avgFatigue * 0.3 + avgStress * 0.2), color: 'var(--danger)' },
+        { label: t('report.insomniaRisk'), value: Math.floor(avgStress * 0.4 + (100 - avgScore) * 0.3), color: 'var(--warning)' },
+        { label: t('report.circadianRisk'), value: Math.floor(avgFatigue * 0.25 + (100 - avgHydration) * 0.25), color: '#a855f7' },
+        { label: t('report.chronicFatigueRisk'), value: Math.floor(avgFatigue * 0.35 + avgStress * 0.15), color: 'var(--secondary)' }
+      ];
+
+      risks.forEach(risk => {
+        const div = document.createElement('div');
+        div.style.cssText = 'display:flex;justify-content:space-between;align-items:center;';
+        div.innerHTML = `
+          <span>${risk.label}</span>
+          <span style="font-weight:700;color:${risk.color};">${risk.value}%</span>
+        `;
+        container.appendChild(div);
       });
     }
 
@@ -5580,7 +5152,7 @@
       const includeScore = document.getElementById('composer-include-score').checked;
 
       if (!postText && !composerAttachedImgData) {
-        showToast(t('community.emptyPost'), "warning");
+        showToast("Cannot post an empty status.", "warning");
         return;
       }
 
@@ -5591,12 +5163,12 @@
 
       const newPost = {
         id: Date.now(),
-        author: t('community.me'),
+        author: "Me (You)",
         avatar: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%2310b981'><circle cx='50' cy='50' r='50'/><text x='50' y='60' font-size='30' fill='white' font-family='sans-serif' text-anchor='middle'>ME</text></svg>",
         text: postText,
         score: attachedScore,
         image: composerAttachedImgData,
-        time: t('community.justNow'),
+        time: "Just now",
         likes: 0,
         comments: [],
         likedByMe: false
@@ -5609,7 +5181,7 @@
       document.getElementById('composer-text').value = '';
       document.getElementById('composer-include-score').checked = false;
       clearComposerImage();
-      showToast(t('community.postShared'));
+      showToast("Post shared to timeline.");
     });
 
     function renderCommunityFeed() {
@@ -5624,7 +5196,7 @@
         let scoreBadge = '';
         if (post.score) {
           const badgeClass = post.score >= 85 ? 'badge-primary' : post.score >= 70 ? 'badge-secondary' : 'badge-danger';
-          scoreBadge = `<span class="badge ${badgeClass}">${t('community.sleepScore', { n: post.score })}</span>`;
+          scoreBadge = `<span class="badge ${badgeClass}">Sleep: ${post.score}</span>`;
         }
 
         let mediaElement = '';
@@ -5650,15 +5222,15 @@
           <div class="post-actions">
             <button class="action-btn ${post.likedByMe ? 'liked' : ''}" onclick="toggleLikePost(${post.id})">
               <i data-lucide="heart" style="width:1.1rem; fill: ${post.likedByMe ? 'currentColor' : 'none'};"></i>
-              <span>${post.likes} ${post.likes !== 1 ? t('community.likes') : t('community.like')}</span>
+              <span>${post.likes} Like${post.likes !== 1 ? 's' : ''}</span>
             </button>
             <button class="action-btn" onclick="openCommentsModal(${post.id})">
               <i data-lucide="message-square" style="width:1.1rem;"></i>
-              <span>${post.comments.length} ${post.comments.length !== 1 ? t('community.comments') : t('community.comment')}</span>
+              <span>${post.comments.length} Comment${post.comments.length !== 1 ? 's' : ''}</span>
             </button>
             <button class="action-btn" onclick="simulateShare(${post.id})">
               <i data-lucide="share" style="width:1.1rem;"></i>
-              <span>${t('community.share')}</span>
+              <span>Share</span>
             </button>
           </div>
         `;
@@ -5685,7 +5257,7 @@
     }
 
     function simulateShare(postId) {
-      showToast(t('community.linkCopied'));
+      showToast("Link copied to clipboard! (Simulated)");
     }
 
     function openCommentsModal(postId) {
@@ -5697,7 +5269,7 @@
       listDiv.innerHTML = '';
 
       if (post.comments.length === 0) {
-        listDiv.innerHTML = `<p style="font-size:0.85rem; color:var(--text-muted); text-align:center;">${t('community.noComments')}</p>`;
+        listDiv.innerHTML = `<p style="font-size:0.85rem; color:var(--text-muted); text-align:center;">No comments yet. Share your thoughts!</p>`;
       } else {
         post.comments.forEach(c => {
           const div = document.createElement('div');
@@ -5715,6 +5287,294 @@
       state.activeCommentsPostId = null;
     }
 
+    let pendingCameraAction = null;
+
+    function showGlassesNotice(callback) {
+      pendingCameraAction = callback;
+      const modal = document.getElementById('glasses-notice-modal');
+      const title = document.getElementById('glasses-notice-title');
+      const text = document.getElementById('glasses-notice-text');
+      const cancelBtn = document.getElementById('glasses-notice-cancel');
+      const ackBtn = document.getElementById('glasses-notice-acknowledge');
+
+      if (state.lang === 'th') {
+        title.textContent = 'แจ้งเตือนการถอดแว่น';
+        text.textContent = 'กรุณาถอดแว่นตาก่อนถ่ายภาพ เพื่อให้ AI วิเคราะห์ใบหน้าได้แม่นยำยิ่งขึ้น';
+        cancelBtn.textContent = 'ยกเลิก';
+        ackBtn.textContent = 'เข้าใจแล้ว ดำเนินการต่อ';
+      } else {
+        title.textContent = 'Glasses Removal Notice';
+        text.textContent = 'Please remove your glasses before taking a photo for more accurate facial analysis.';
+        cancelBtn.textContent = 'Cancel';
+        ackBtn.textContent = 'I Understand, Continue';
+      }
+
+      modal.classList.add('active');
+    }
+
+    function closeGlassesNotice() {
+      document.getElementById('glasses-notice-modal').classList.remove('active');
+      pendingCameraAction = null;
+    }
+
+    function acknowledgeGlassesNotice() {
+      document.getElementById('glasses-notice-modal').classList.remove('active');
+      if (pendingCameraAction) {
+        pendingCameraAction();
+        pendingCameraAction = null;
+      }
+    }
+
+    async function initFaceDetectionModels() {
+      if (typeof faceapi === 'undefined') return;
+      try {
+        await ensureFaceModelsLoaded();
+        console.log('[FaceDetection] Models preloaded successfully');
+      } catch (err) {
+        console.error('[FaceDetection] Model preload failed:', err);
+      }
+    }
+
+    async function ensureFaceModelsLoaded() {
+      if (faceModelsLoaded) return true;
+      if (faceModelsLoading) return faceModelsLoading;
+      if (typeof faceapi === 'undefined') {
+        throw new Error('face-api unavailable');
+      }
+      faceModelsLoading = (async () => {
+        const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
+        await Promise.all([
+          faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
+          faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL)
+        ]);
+        faceModelsLoaded = true;
+        console.log('[FaceDetection] Models loaded');
+      })();
+      return faceModelsLoading;
+    }
+
+    function waitForVideoReady(videoEl, timeoutMs = 5000) {
+      if (videoEl.readyState >= 2 && videoEl.videoWidth > 0 && videoEl.videoHeight > 0) {
+        return Promise.resolve();
+      }
+      return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('Video not ready')), timeoutMs);
+        const finish = () => {
+          if (videoEl.videoWidth > 0 && videoEl.videoHeight > 0) {
+            clearTimeout(timeout);
+            videoEl.removeEventListener('loadeddata', finish);
+            videoEl.removeEventListener('canplay', finish);
+            resolve();
+          }
+        };
+        videoEl.addEventListener('loadeddata', finish);
+        videoEl.addEventListener('canplay', finish);
+        finish();
+      });
+    }
+
+    function getRegionBrightness(ctx, x, y, w, h) {
+      const sx = Math.max(0, Math.floor(x));
+      const sy = Math.max(0, Math.floor(y));
+      const sw = Math.max(1, Math.min(Math.floor(w), ctx.canvas.width - sx));
+      const sh = Math.max(1, Math.min(Math.floor(h), ctx.canvas.height - sy));
+      const data = ctx.getImageData(sx, sy, sw, sh).data;
+      let total = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        total += (data[i] + data[i + 1] + data[i + 2]) / 3;
+      }
+      return total / (data.length / 4);
+    }
+
+    function getRegionSharpness(ctx, x, y, w, h) {
+      const sx = Math.max(0, Math.floor(x));
+      const sy = Math.max(0, Math.floor(y));
+      const sw = Math.max(8, Math.min(Math.floor(w), ctx.canvas.width - sx));
+      const sh = Math.max(8, Math.min(Math.floor(h), ctx.canvas.height - sy));
+      const data = ctx.getImageData(sx, sy, sw, sh).data;
+      const gray = new Float32Array(sw * sh);
+      for (let yIdx = 0; yIdx < sh; yIdx++) {
+        for (let xIdx = 0; xIdx < sw; xIdx++) {
+          const idx = (yIdx * sw + xIdx) * 4;
+          gray[yIdx * sw + xIdx] = (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
+        }
+      }
+      let sum = 0;
+      let sumSq = 0;
+      let count = 0;
+      for (let yIdx = 1; yIdx < sh - 1; yIdx++) {
+        for (let xIdx = 1; xIdx < sw - 1; xIdx++) {
+          const center = gray[yIdx * sw + xIdx];
+          const lap = (
+            gray[(yIdx - 1) * sw + xIdx] +
+            gray[(yIdx + 1) * sw + xIdx] +
+            gray[yIdx * sw + (xIdx - 1)] +
+            gray[yIdx * sw + (xIdx + 1)] -
+            4 * center
+          );
+          sum += lap;
+          sumSq += lap * lap;
+          count++;
+        }
+      }
+      if (!count) return 0;
+      const mean = sum / count;
+      return sumSq / count - mean * mean;
+    }
+
+    function logFaceValidationDebug(metrics) {
+      console.log('[FaceValidation]', metrics);
+    }
+
+    async function validateFaceCanvas(sourceCanvas) {
+      const validationResults = { passed: true, errors: [] };
+
+      if (!sourceCanvas || !sourceCanvas.width || !sourceCanvas.height) {
+        validationResults.passed = false;
+        validationResults.errors.push(t('face.noFace'));
+        return validationResults;
+      }
+
+      try {
+        await ensureFaceModelsLoaded();
+      } catch (err) {
+        console.error('[FaceValidation] Model load failed:', err);
+        validationResults.passed = false;
+        validationResults.errors.push(t('face.modelsFailed'));
+        return validationResults;
+      }
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      const maxDim = 960;
+      const scale = Math.min(1, maxDim / Math.max(sourceCanvas.width, sourceCanvas.height));
+      canvas.width = Math.max(1, Math.round(sourceCanvas.width * scale));
+      canvas.height = Math.max(1, Math.round(sourceCanvas.height * scale));
+      ctx.drawImage(sourceCanvas, 0, 0, canvas.width, canvas.height);
+
+      let detections = [];
+      try {
+        detections = await faceapi
+          .detectAllFaces(canvas, new faceapi.SsdMobilenetv1Options({
+            minConfidence: FACE_VALIDATION.detectorMinConfidence
+          }))
+          .withFaceLandmarks();
+      } catch (err) {
+        console.error('[FaceValidation] Detection failed:', err);
+        validationResults.passed = false;
+        validationResults.errors.push(t('face.modelsFailed'));
+        return validationResults;
+      }
+
+      detections.sort((a, b) => b.detection.score - a.detection.score);
+      const faceCount = detections.length;
+      const bestConfidence = faceCount ? detections[0].detection.score : 0;
+
+      let brightness = 0;
+      let blurScore = 0;
+      let faceSize = 0;
+      let facePosition = { offsetX: 0, offsetY: 0, areaRatio: 0 };
+
+      if (faceCount > 0) {
+        const box = detections[0].detection.box;
+        const imageArea = canvas.width * canvas.height;
+        faceSize = (box.width * box.height) / imageArea;
+        facePosition = {
+          offsetX: Math.abs((box.x + box.width / 2) - canvas.width / 2) / canvas.width,
+          offsetY: Math.abs((box.y + box.height / 2) - canvas.height / 2) / canvas.height,
+          areaRatio: faceSize
+        };
+        brightness = getRegionBrightness(ctx, box.x, box.y, box.width, box.height);
+        blurScore = getRegionSharpness(ctx, box.x, box.y, box.width, box.height);
+      }
+
+      logFaceValidationDebug({
+        confidence: Number(bestConfidence.toFixed(3)),
+        faceCount,
+        brightness: Number(brightness.toFixed(1)),
+        blurScore: Number(blurScore.toFixed(1)),
+        faceSize: Number(faceSize.toFixed(3)),
+        facePosition
+      });
+
+      if (faceCount === 0) {
+        validationResults.passed = false;
+        validationResults.errors.push(t('face.noFace'));
+        return validationResults;
+      }
+
+      if (faceCount > 1) {
+        validationResults.passed = false;
+        validationResults.errors.push(t('face.multipleFaces'));
+        return validationResults;
+      }
+
+      const face = detections[0];
+      const confidence = face.detection.score;
+      const box = face.detection.box;
+
+      if (confidence < FACE_VALIDATION.rejectConfidence) {
+        validationResults.passed = false;
+        validationResults.errors.push(t('face.lowConfidence'));
+        return validationResults;
+      }
+
+      const imageArea = canvas.width * canvas.height;
+      const faceAreaRatio = (box.width * box.height) / imageArea;
+      const offsetX = Math.abs((box.x + box.width / 2) - canvas.width / 2) / canvas.width;
+      const offsetY = Math.abs((box.y + box.height / 2) - canvas.height / 2) / canvas.height;
+
+      if (faceAreaRatio < FACE_VALIDATION.minFaceAreaRatio) {
+        validationResults.passed = false;
+        validationResults.errors.push(t('face.tooFar'));
+      }
+
+      if (offsetX > FACE_VALIDATION.maxCenterOffset || offsetY > FACE_VALIDATION.maxCenterOffset) {
+        validationResults.passed = false;
+        if (!validationResults.errors.includes(t('face.offCenter'))) {
+          validationResults.errors.push(t('face.offCenter'));
+        }
+      }
+
+      brightness = getRegionBrightness(ctx, box.x, box.y, box.width, box.height);
+      if (brightness < FACE_VALIDATION.extremeDarkBrightness) {
+        validationResults.passed = false;
+        validationResults.errors.push(t('face.tooDark'));
+      }
+
+      blurScore = getRegionSharpness(ctx, box.x, box.y, box.width, box.height);
+      if (blurScore < FACE_VALIDATION.extremeBlurSharpness) {
+        validationResults.passed = false;
+        validationResults.errors.push(t('face.blurry'));
+      }
+
+      return validationResults;
+    }
+
+    async function validateFaceImage(imageData) {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      const img = new Image();
+
+      return new Promise((resolve) => {
+        img.onload = async () => {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+          resolve(await validateFaceCanvas(canvas));
+        };
+        img.onerror = () => {
+          resolve({ passed: false, errors: [t('face.noFace')] });
+        };
+        img.src = imageData;
+      });
+    }
+
+    function showFaceValidationErrors(errors) {
+      const message = errors.join(' | ');
+      showToast(message, 'danger');
+    }
+
     document.getElementById('btn-submit-comment').addEventListener('click', () => {
       const input = document.getElementById('comment-input');
       const text = input.value.trim();
@@ -5723,38 +5583,36 @@
       const post = state.communityPosts.find(p => p.id === state.activeCommentsPostId);
       if (!post) return;
 
-      post.comments.push({ author: t('community.me'), text: text });
+      post.comments.push({ author: "Me", text: text });
       saveCommunityToStorage();
       
       input.value = '';
       openCommentsModal(state.activeCommentsPostId);
       renderCommunityFeed();
-      showToast(t('community.commentAdded'));
+      showToast("Comment added.");
     });
 
     /* About page contact form submit */
     function handleContactSubmit(event) {
       event.preventDefault();
-      showToast(t('about.messageSent'), "success");
+      showToast("Message sent to support! We will reply within 24 hours.", "success");
       event.target.reset();
     }
 
     /* ----------------------------------------------------
        SETTINGS & SYSTEM DATA CONTROLLER
        ---------------------------------------------------- */
-    function resetSleepDatabase() {
-      if (confirm(t('settings.resetConfirm'))) {
+    function resetSleepDatabase(force = false) {
+      if (force || confirm("Are you sure you want to permanently delete all sleep logs and timeline tracking?")) {
         localStorage.removeItem(LOCAL_STORAGE_HISTORY_KEY);
         localStorage.removeItem(LOCAL_STORAGE_TRACKING_KEY);
-        localStorage.removeItem(LOCAL_STORAGE_TRACKING_HISTORY_KEY);
         localStorage.removeItem(LOCAL_STORAGE_COMMUNITY_KEY);
         
         loadStorageData();
         renderTimeline();
-        renderTrackingHistory();
         renderCommunityFeed();
         
-        showToast(t('settings.resetDone'), "warning");
+        showToast("Database successfully wiped.", "warning");
       }
     }
 
@@ -5763,7 +5621,6 @@
         JSON.stringify({
           history: state.sleepHistory,
           tracking: state.trackingDays,
-          trackingHistory: state.trackingHistory,
           posts: state.communityPosts,
           premium: state.isPremium,
           lang: state.lang,
@@ -5776,7 +5633,7 @@
       document.body.appendChild(dlAnchor);
       dlAnchor.click();
       dlAnchor.remove();
-      showToast(t('settings.exportDone'));
+      showToast("JSON backup generated!");
     }
 
     const importFileSelector = document.getElementById('import-file-selector');
@@ -5789,39 +5646,29 @@
         try {
           const parsed = JSON.parse(event.target.result);
           if (parsed.history && parsed.tracking) {
-            state.sleepHistory = parsed.history;
-            state.trackingDays = parsed.tracking;
-            if (parsed.trackingHistory) state.trackingHistory = parsed.trackingHistory;
+            state.sleepHistory = sanitizeHistoryRecords(parsed.history);
+            state.trackingDays = sanitizeTrackingRecords(parsed.tracking);
             if (parsed.posts) state.communityPosts = parsed.posts;
             if (typeof parsed.premium === 'boolean') {
               state.isPremium = parsed.premium;
               localStorage.setItem(LOCAL_STORAGE_PREMIUM_KEY, parsed.premium ? 'true' : 'false');
             }
 
-            for (let i = 1; i <= 7; i++) {
-              const key = `day${i}`;
-              if (state.trackingDays[key]) {
-                state.trackingDays[key] = migrateTrackingRecord(state.trackingDays[key], i);
-              }
-            }
-
             saveHistoryToStorage();
             saveTrackingToStorage();
-            saveTrackingHistoryToStorage();
             saveCommunityToStorage();
 
             updateDashboardData();
             renderTimeline();
-            renderTrackingHistory();
             renderCommunityFeed();
             updatePremiumUI();
 
-            showToast(t('settings.importDone'), "success");
+            showToast("Database successfully imported!", "success");
           } else {
-            showToast(t('settings.importInvalid'), "danger");
+            showToast("Invalid file structure.", "danger");
           }
         } catch (err) {
-          showToast(t('settings.importError'), "danger");
+          showToast("Error parsing file.", "danger");
         }
       };
       reader.readAsText(file);
@@ -5893,21 +5740,22 @@
     function showFAQModal() {
       const modal = document.getElementById('article-reader-modal');
       const body = document.getElementById('modal-article-body');
+      const isTh = state.lang === 'th';
       
       body.innerHTML = `
-        <h2 style="font-size: 1.75rem; margin-bottom:1.5rem;">${t('faq.title')}</h2>
+        <h2 style="font-size: 1.75rem; margin-bottom:1.5rem;">${isTh ? 'คำถามที่พบบ่อย' : 'Frequently Asked Questions'}</h2>
         <div style="display:flex; flex-direction:column; gap:1.25rem;">
           <div>
-            <h4 style="font-size:1rem; margin-bottom:0.25rem;">${t('faq.q1')}</h4>
-            <p style="font-size:0.9rem; color:var(--text-muted);">${t('faq.a1')}</p>
+            <h4 style="font-size:1rem; margin-bottom:0.25rem;">${isTh ? 'สแกนการนอนแม่นยำทางคลินิกหรือไม่?' : 'Is the Sleep Scan clinically accurate?'}</h4>
+            <p style="font-size:0.9rem; color:var(--text-muted);">${isTh ? 'ไม่ ซอฟต์แวร์ทำการจำลองภายในเบราว์เซอร์เท่านั้น ไม่ใช่การวินิจฉัยทางการแพทย์' : 'No. The scanning software performs a localized visual simulation based on facial lighting and contrast. It is purely designed as a habit-promoting wellness aid, and <strong>does not provide medical diagnoses</strong>.'}</p>
           </div>
           <div>
-            <h4 style="font-size:1rem; margin-bottom:0.25rem;">${t('faq.q2')}</h4>
-            <p style="font-size:0.9rem; color:var(--text-muted);">${t('faq.a2')}</p>
+            <h4 style="font-size:1rem; margin-bottom:0.25rem;">${isTh ? 'ความเป็นส่วนตัวจัดการอย่างไร?' : 'How is my privacy managed?'}</h4>
+            <p style="font-size:0.9rem; color:var(--text-muted);">${isTh ? 'ภาพใบหน้าประมวลผลในเบราว์เซอร์เท่านั้นและถูกลบทันทีหลังวิเคราะห์ ระบบเก็บเฉพาะค่าตัวเลขและเวลาใน LocalStorage ไม่ส่งไปเซิร์ฟเวอร์' : "Face photos are processed locally in your browser and discarded immediately after analysis. Only numerical results and timestamps are saved in LocalStorage. No biometric images are sent to external servers."}</p>
           </div>
           <div>
-            <h4 style="font-size:1rem; margin-bottom:0.25rem;">${t('faq.q3')}</h4>
-            <p style="font-size:0.9rem; color:var(--text-muted);">${t('faq.a3')}</p>
+            <h4 style="font-size:1rem; margin-bottom:0.25rem;">${isTh ? 'ทำความท้าทาย 7 วันอย่างไร?' : 'How do I complete the 7-day challenge?'}</h4>
+            <p style="font-size:0.9rem; color:var(--text-muted);">${isTh ? 'เปิดหน้า 7-Day Tracking แล้วถ่ายหรืออัปโหลดภาพวันละ 1 ครั้งบนหน้านั้นเท่านั้น ภาพจาก AI Scan จะไม่ถูกบันทึกในไทม์ไลน์' : "Open the 7-Day Tracking page and capture or upload one photo per day on that page only. AI Scan photos are never stored in the timeline. Day 7 unlocks the cumulative Risk profile."}</p>
           </div>
         </div>
       `;
